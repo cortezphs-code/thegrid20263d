@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRID 2026 — Monte seu Piloto</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06070c; --surface:#12141d; --surface2:#191c28; --border:#272c3d;
+  --text:#f1f3f9; --text-dim:#838aa0;
+  --accent:#7c5cff; --accent2:#00e5c7;
+  --gradient: linear-gradient(135deg,#7c5cff,#00e5c7);
+  --cut: 14px;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;max-width:640px;margin:0 auto;padding:18px;min-height:100vh}
+h1,h2,h3{font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.3px}
+h1{font-size:26px;background:var(--gradient);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:2px}
+.sub{color:var(--text-dim);font-size:13px;margin-bottom:16px}
+.steps-nav{display:flex;gap:4px;margin-bottom:18px}
+.steps-nav div{flex:1;text-align:center;font-size:10px;color:var(--text-dim);padding:6px 2px;border-radius:8px;background:var(--surface);border:1px solid var(--border);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.steps-nav div.ativo{background:var(--gradient);color:#fff;border-color:transparent}
+.step{display:none}
+.step.ativo{display:block; animation: entrarTela .38s cubic-bezier(.2,.8,.3,1)}
+@keyframes entrarTela{
+  0%{opacity:0; transform:translateY(10px) scale(.99)}
+  100%{opacity:1; transform:translateY(0) scale(1)}
+}
+button{background:var(--gradient);color:#fff;border:none;padding:12px 20px;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;font-family:'Rajdhani',sans-serif;letter-spacing:.4px;text-transform:uppercase;margin:4px 6px 4px 0;box-shadow:0 4px 14px rgba(124,92,255,.3);transition:transform .15s}
+button:hover{transform:translateY(-1px)}
+button:disabled{background:var(--surface2);box-shadow:none;color:var(--text-dim);cursor:not-allowed}
+button.sec{background:var(--surface2);box-shadow:none;color:var(--text)}
+.grid-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.opcao{
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent2);
+  padding:14px 14px 14px 16px;cursor:pointer;text-align:left;transition:.15s;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.opcao:hover{border-left-color:var(--accent);transform:translateX(2px)}
+.opcao b{display:block;font-size:15px;font-family:'Rajdhani',sans-serif}
+.opcao span{font-size:12px;color:var(--text-dim)}
+input[type=text]{width:100%;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:#fff;margin-bottom:12px;font-family:'Inter',sans-serif;font-size:14px}
+canvas{background:radial-gradient(circle at 50% 40%, #1a2e1a 0%, #0f1a0f 100%);border-radius:14px;width:100%;height:auto;display:block;border:1px solid var(--border)}
+.pista-wrap{perspective:900px;margin-top:10px;padding:14px 0 26px}
+#pista{box-shadow:0 40px 50px -20px rgba(0,0,0,.7);margin:0 auto}
+.corrida-hud{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-family:'Rajdhani',sans-serif;font-weight:600}
+.corrida-hud .volta{background:var(--surface);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-size:14px}
+.leaderboard{margin-top:10px;font-size:13px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);overflow:hidden}
+.leaderboard div{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)}
+.leaderboard div:last-child{border-bottom:none}
+.leaderboard div.player{background:linear-gradient(90deg, rgba(124,92,255,.22), transparent);color:#b8a4ff;font-weight:600}
+.time-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;flex-shrink:0}
+.resultado div{display:flex;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:14px}
+.resultado div.player{background:linear-gradient(90deg, rgba(124,92,255,.22), transparent);color:#b8a4ff;font-weight:600}
+.draft-cabecalho{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-family:'Rajdhani',sans-serif;font-weight:600}
+.draft-cabecalho b{color:var(--accent2)}
+.rerolls{font-size:12px;color:var(--text-dim)}
+.opcao-piloto{
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);
+  padding:18px 18px 18px 20px;margin-bottom:8px;cursor:pointer;text-align:center;transition:.15s;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.opcao-piloto:hover{border-left-color:var(--accent2);transform:translateX(2px)}
+.opcao-piloto .nome{font-size:17px;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.3px}
+.resumo{
+  background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent2);
+  padding:14px 14px 14px 16px;margin:10px 0;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.resumo div{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
+.progresso-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-left:3px solid var(--accent);padding:14px 14px 14px 16px;margin-bottom:16px;font-size:13px;
+  clip-path:polygon(0 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%);
+}
+.progresso-card .barra{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-top:8px}
+.progresso-card .barra-fill{height:100%;background:var(--gradient)}
+.unlock-msg{background:linear-gradient(90deg, rgba(0,229,199,.15), rgba(124,92,255,.1));border:1px solid #00e5c7;color:#8ff5e5;padding:10px 12px;border-radius:10px;margin-top:10px;font-size:13px}
+.faixa-quadriculada{height:14px;border-radius:4px;margin:10px 0;background-image:
+  repeating-conic-gradient(#111 0% 25%, #fff 0% 50%);
+  background-size:14px 14px;}
+.podio-celebracao{text-align:center;padding:16px 10px;animation:popIn .5s ease;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px}
+.podio-celebracao .emoji{font-size:56px;line-height:1}
+@keyframes popIn{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.confete-container{position:relative;height:0;overflow:visible}
+.confete-piece{position:absolute;width:7px;height:13px;top:-10px;opacity:.95;animation-name:confeteCai;animation-timing-function:ease-in;animation-fill-mode:forwards}
+@keyframes confeteCai{to{transform:translateY(260px) rotate(420deg);opacity:0}}
+</style>
+</head>
+<body>
+<h1>🏁 GRID 2026</h1>
+<div class="sub">Monte seu piloto · Temporada completa</div>
+<div class="steps-nav" id="stepsNav">
+  <div>Grid</div><div>Equipe</div><div>Piloto</div><div>Temporada</div><div>Corrida</div>
+</div>
+
+<!-- STEP 1: ERA -->
+<div class="step ativo" id="step1">
+  <div class="progresso-card" id="progressoInfo"></div>
+  <label style="display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px">Nome do seu piloto</label>
+  <input type="text" id="nomePiloto" placeholder="Nome do seu piloto" value="Seu Piloto">
+  <div id="nomeAnteriorBox"></div>
+  <p>Escolha o grid:</p>
+  <div class="grid-btns">
+    <div class="opcao" onclick="escolherEra('atual')"><b>Grid Atual (2026)</b><span>Pilotos e equipes da temporada atual</span></div>
+    <div class="opcao" onclick="escolherEra('lendaria')"><b>Grid Lendário</b><span>Craques históricos da F1</span></div>
+  </div>
+  <button class="sec" onclick="abrirCarreira()" style="margin-top:12px">📖 Ver minha carreira</button>
+</div>
+
+<!-- STEP 2: TEAM -->
+<div class="step" id="step2">
+  <div class="draft-cabecalho">
+    <span>Sorteio de equipe</span>
+    <span class="rerolls">Re-sorteios: <b id="rerollsEquipeVal">1</b></span>
+  </div>
+  <div class="grid-btns" id="listaEquipes"></div>
+  <button class="sec" onclick="sortearEquipes(true)" id="btnRerollEquipe">🎲 Sortear novamente</button>
+  <button class="sec" onclick="irStep(1)">Voltar</button>
+</div>
+
+<!-- STEP 3: DRAFT -->
+<div class="step" id="step3">
+  <div class="draft-cabecalho">
+    <span>Atributo <b id="draftAtual">1</b> de 4: <b id="draftLabel">Qualy</b></span>
+    <span class="rerolls">Re-sorteios: <b id="rerollsVal">3</b></span>
+  </div>
+  <p style="font-size:12px;color:var(--text-dim);margin:0 0 8px">Escolha só pelo nome — sem ver o atributo. Use o que você sabe sobre cada piloto.</p>
+  <div id="opcoesDraft"></div>
+  <button class="sec" onclick="sortearNovamente()" id="btnReroll">🎲 Sortear novamente</button>
+  <div class="resumo" id="resumoDraft"></div>
+</div>
+
+<!-- STEP 4: TEMPORADA -->
+<div class="step" id="step4">
+  <h3 id="temporadaTitulo">Temporada 2026</h3>
+  <div class="resumo" id="proximaCorridaBox"></div>
+  <h3 style="font-size:15px;margin-top:14px">🏎️ Pilotos</h3>
+  <div class="leaderboard" id="classificacaoTemporada"></div>
+  <h3 style="font-size:15px;margin-top:14px">🏗️ Construtores</h3>
+  <div class="leaderboard" id="classificacaoConstrutores"></div>
+</div>
+
+<!-- STEP 6: EVOLUÇÃO -->
+<div class="step" id="step6">
+  <h3>⭐ Sessão de Evolução</h3>
+  <p style="font-size:13px;color:var(--text-dim);margin:4px 0 14px">Você acumulou XP nas últimas 3 corridas. Escolha onde investir: um atributo do piloto (+10%) ou o desenvolvimento do carro (+5%). Só vale pra esta temporada.</p>
+  <div class="grid-btns" id="listaEvolucao"></div>
+</div>
+
+<!-- STEP 7: CARREIRA -->
+<div class="step" id="step7">
+  <h3>📖 Sua Carreira</h3>
+  <button class="sec" onclick="irStep(1)" style="margin-bottom:14px">← Voltar</button>
+  <h3 style="font-size:16px;margin-top:10px">🏆 Hall de Temporadas</h3>
+  <div class="leaderboard" id="hallLista"></div>
+  <h3 style="font-size:16px;margin-top:18px">🔧 Garagem — pilotos já usados</h3>
+  <div class="leaderboard" id="garagemLista"></div>
+  <h3 style="font-size:16px;margin-top:18px">🏅 Conquistas</h3>
+  <div class="leaderboard" id="conquistasLista"></div>
+</div>
+
+<!-- STEP 5: RACE -->
+<div class="step" id="step5">
+  <div class="corrida-hud">
+    <span id="statusCorrida">Corrida em andamento...</span>
+    <span class="volta" id="voltaInfo">Volta 1/3</span>
+  </div>
+  <div id="btnVerResultadoWrap" style="text-align:center;margin-top:6px"></div>
+  <div id="comentarioCorrida" style="font-size:12.5px;color:var(--text-dim);min-height:16px;margin-top:4px;text-align:center;font-style:italic"></div>
+  <div class="pista-wrap">
+    <canvas id="pista" width="600" height="330"></canvas>
+  </div>
+  <div class="leaderboard" id="leaderboard"></div>
+  <div id="resultadoFinal"></div>
+</div>
+
+<script>
+let audioCtx = null;
+function getAudioCtx(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, duration, type='sine', vol=0.12, delay=0){
+  try{
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    osc.connect(gain); gain.connect(ctx.destination);
+    const t0 = ctx.currentTime + delay;
+    gain.gain.setValueAtTime(vol, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0+duration);
+    osc.start(t0); osc.stop(t0+duration+0.02);
+  }catch(e){}
+}
+function playClick(){ playTone(600, 0.05, 'square', 0.06); }
+function playEngine(){
+  try{
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.connect(gain); gain.connect(ctx.destination);
+    const t0 = ctx.currentTime;
+    osc.frequency.setValueAtTime(80, t0);
+    osc.frequency.exponentialRampToValueAtTime(420, t0+0.7);
+    osc.frequency.exponentialRampToValueAtTime(160, t0+1.1);
+    gain.gain.setValueAtTime(0.05, t0);
+    gain.gain.exponentialRampToValueAtTime(0.001, t0+1.3);
+    osc.start(t0); osc.stop(t0+1.35);
+  }catch(e){}
+}
+function playFanfare(){
+  [523.25, 659.25, 783.99, 1046.5].forEach((f,i)=> playTone(f, 0.35, 'triangle', 0.1, i*0.12));
+}
+function playApplause(){
+  for(let i=0;i<16;i++) playTone(200+Math.random()*400, 0.05, 'square', 0.025, Math.random()*0.6);
+}
+document.addEventListener('click', e => { if(e.target && e.target.tagName === 'BUTTON') playClick(); });
+const eras = {
+  atual: {
+    teams: [
+      {nome:"Red Bull", carro:86},{nome:"McLaren", carro:94},{nome:"Ferrari", carro:88},
+      {nome:"Mercedes", carro:86},{nome:"Aston Martin", carro:78},{nome:"Alpine", carro:72},
+      {nome:"Williams", carro:76},{nome:"Audi", carro:68},{nome:"Haas", carro:70},
+      {nome:"Racing Bulls", carro:74},{nome:"Cadillac", carro:62},
+    ],
+    pilotos: [
+      {nome:"Verstappen",equipe:"Red Bull",qualy:93,ritmo:92,cons:93,carro:86,ultra:88},
+      {nome:"Lawson",equipe:"Racing Bulls",qualy:84,ritmo:82,cons:79,carro:74,ultra:81},
+      {nome:"Norris",equipe:"McLaren",qualy:93,ritmo:92,cons:88,carro:94,ultra:82},
+      {nome:"Piastri",equipe:"McLaren",qualy:91,ritmo:90,cons:87,carro:94,ultra:83},
+      {nome:"Leclerc",equipe:"Ferrari",qualy:92,ritmo:90,cons:85,carro:88,ultra:86},
+      {nome:"Hamilton",equipe:"Ferrari",qualy:88,ritmo:89,cons:90,carro:88,ultra:89},
+      {nome:"Russell",equipe:"Mercedes",qualy:90,ritmo:88,cons:89,carro:86,ultra:80},
+      {nome:"Antonelli",equipe:"Mercedes",qualy:85,ritmo:83,cons:78,carro:86,ultra:79},
+      {nome:"Alonso",equipe:"Aston Martin",qualy:87,ritmo:85,cons:92,carro:78,ultra:90},
+      {nome:"Stroll",equipe:"Aston Martin",qualy:76,ritmo:75,cons:74,carro:78,ultra:68},
+      {nome:"Gasly",equipe:"Alpine",qualy:83,ritmo:82,cons:83,carro:72,ultra:78},
+      {nome:"Colapinto",equipe:"Alpine",qualy:75,ritmo:73,cons:68,carro:72,ultra:76},
+      {nome:"Sainz",equipe:"Williams",qualy:86,ritmo:85,cons:84,carro:76,ultra:79},
+      {nome:"Albon",equipe:"Williams",qualy:82,ritmo:81,cons:83,carro:76,ultra:78},
+      {nome:"Hülkenberg",equipe:"Audi",qualy:79,ritmo:78,cons:82,carro:68,ultra:75},
+      /* 🇧🇷 easter egg: Bortoleto turbinado de propósito — recalibrado após a nerfada geral do grid (testado: ~9,6% de chance de título, 54% de pódio) */
+      {nome:"Bortoleto",equipe:"Audi",qualy:95,ritmo:98,cons:91,carro:84,ultra:88},
+      {nome:"Ocon",equipe:"Haas",qualy:80,ritmo:79,cons:81,carro:70,ultra:76},
+      {nome:"Bearman",equipe:"Haas",qualy:78,ritmo:77,cons:73,carro:70,ultra:75},
+      {nome:"Hadjar",equipe:"Red Bull",qualy:81,ritmo:79,cons:76,carro:86,ultra:80},
+      {nome:"Lindblad",equipe:"Racing Bulls",qualy:76,ritmo:72,cons:65,carro:74,ultra:74},
+      {nome:"Pérez",equipe:"Cadillac",qualy:80,ritmo:80,cons:82,carro:62,ultra:77},
+      {nome:"Bottas",equipe:"Cadillac",qualy:77,ritmo:76,cons:80,carro:62,ultra:66},
+    ]
+  },
+  lendaria: {
+    teams: [
+      {nome:"Mercedes Lendária", carro:90},{nome:"McLaren Lendária", carro:90},
+      {nome:"Ferrari Lendária", carro:90},{nome:"Williams Lendária", carro:86},
+      {nome:"Lotus Lendária", carro:78},{nome:"Tyrrell Lendária", carro:74},
+      {nome:"Brabham Lendária", carro:78},{nome:"Red Bull Lendária", carro:88},
+    ],
+    pilotos: []
+  }
+};
+
+const poolHistorico = [
+ // tier 3 — Lendários (GOATs, 1000 pts)
+ {nome:"Ayrton Senna", qualy:98, ritmo:93, cons:80, ultra:95, tier:2},
+ {nome:"Michael Schumacher", qualy:93, ritmo:96, cons:92, ultra:88, tier:2},
+ {nome:"Juan Manuel Fangio", qualy:90, ritmo:92, cons:90, ultra:80, tier:2},
+ {nome:"Alain Prost", qualy:90, ritmo:92, cons:94, ultra:82, tier:2},
+ {nome:"Jim Clark", qualy:94, ritmo:90, cons:82, ultra:82, tier:2},
+ {nome:"Lewis Hamilton", qualy:95, ritmo:94, cons:89, ultra:90, tier:2},
+ {nome:"Max Verstappen", qualy:96, ritmo:95, cons:93, ultra:88, tier:2},
+ // tier 2 — Com História (campeões consagrados, 400 pts)
+ {nome:"Niki Lauda", qualy:87, ritmo:88, cons:93, ultra:75, tier:1},
+ {nome:"Jackie Stewart", qualy:88, ritmo:87, cons:91, ultra:78, tier:1},
+ {nome:"Nigel Mansell", qualy:89, ritmo:87, cons:78, ultra:90, tier:1},
+ {nome:"Nelson Piquet", qualy:86, ritmo:87, cons:85, ultra:80, tier:1},
+ {nome:"Mika Häkkinen", qualy:90, ritmo:89, cons:87, ultra:84, tier:1},
+ {nome:"Fernando Alonso", qualy:91, ritmo:89, cons:88, ultra:85, tier:1},
+ {nome:"Sebastian Vettel", qualy:92, ritmo:90, cons:87, ultra:78, tier:1},
+ {nome:"Kimi Räikkönen", qualy:87, ritmo:88, cons:90, ultra:76, tier:1},
+ {nome:"Damon Hill", qualy:83, ritmo:82, cons:85, ultra:70, tier:1},
+ {nome:"Nico Rosberg", qualy:86, ritmo:84, cons:83, ultra:72, tier:1},
+ {nome:"Jacques Villeneuve", qualy:82, ritmo:78, cons:72, ultra:75, tier:1},
+ {nome:"Jenson Button", qualy:81, ritmo:85, cons:88, ultra:70, tier:1},
+ // tier 1 — Regulares (desbloqueado desde o início; inclui o antigo "Acima da média")
+ {nome:"Rubens Barrichello", qualy:82, ritmo:83, cons:85, ultra:74, tier:1},
+ {nome:"David Coulthard", qualy:83, ritmo:82, cons:84, ultra:72, tier:1},
+ {nome:"Felipe Massa", qualy:84, ritmo:82, cons:79, ultra:73, tier:1},
+ {nome:"Daniel Ricciardo", qualy:85, ritmo:83, cons:78, ultra:89, tier:1},
+ {nome:"Valtteri Bottas", qualy:86, ritmo:82, cons:83, ultra:65, tier:1},
+ {nome:"Jean Alesi", qualy:82, ritmo:80, cons:70, ultra:86, tier:1},
+ {nome:"Gerhard Berger", qualy:85, ritmo:84, cons:80, ultra:76, tier:1},
+ {nome:"Mark Webber", qualy:84, ritmo:83, cons:81, ultra:77, tier:1},
+ {nome:"Ralf Schumacher", qualy:80, ritmo:78, cons:75, ultra:68, tier:1},
+ {nome:"Giancarlo Fisichella", qualy:78, ritmo:76, cons:74, ultra:72, tier:1},
+ {nome:"Nick Heidfeld", qualy:77, ritmo:75, cons:79, ultra:62, tier:1},
+ {nome:"Romain Grosjean", qualy:82, ritmo:78, cons:68, ultra:75, tier:1},
+ {nome:"Takuma Sato", qualy:78, ritmo:74, cons:65, ultra:82, tier:1},
+ {nome:"Yuji Ide", qualy:68, ritmo:64, cons:62, ultra:60, tier:1},
+ {nome:"Max Chilton", qualy:70, ritmo:68, cons:72, ultra:58, tier:1},
+ {nome:"Narain Karthikeyan", qualy:70, ritmo:68, cons:70, ultra:60, tier:1},
+ {nome:"Jos Verstappen", qualy:80, ritmo:78, cons:70, ultra:82, tier:1},
+ {nome:"Marcus Ericsson", qualy:75, ritmo:72, cons:75, ultra:65, tier:1},
+ {nome:"Pedro de la Rosa", qualy:80, ritmo:77, cons:78, ultra:68, tier:1},
+ {nome:"Jarno Trulli", qualy:84, ritmo:76, cons:72, ultra:65, tier:1},
+ {nome:"Pastor Maldonado", qualy:78, ritmo:72, cons:58, ultra:75, tier:1},
+];
+
+const EQUIPE_HISTORICA = {
+  "Ayrton Senna": "McLaren Lendária",
+  "Michael Schumacher": "Ferrari Lendária",
+  "Juan Manuel Fangio": "Mercedes Lendária",
+  "Alain Prost": "McLaren Lendária",
+  "Jim Clark": "Lotus Lendária",
+  "Lewis Hamilton": "Mercedes Lendária",
+  "Max Verstappen": "Red Bull Lendária",
+  "Niki Lauda": "Ferrari Lendária",
+  "Jackie Stewart": "Tyrrell Lendária",
+  "Nigel Mansell": "Williams Lendária",
+  "Nelson Piquet": "Brabham Lendária",
+  "Mika Häkkinen": "McLaren Lendária",
+  "Fernando Alonso": "Ferrari Lendária",
+  "Sebastian Vettel": "Red Bull Lendária",
+  "Kimi Räikkönen": "Ferrari Lendária",
+  "Damon Hill": "Williams Lendária",
+  "Nico Rosberg": "Mercedes Lendária",
+  "Jacques Villeneuve": "Williams Lendária",
+  "Jenson Button": "McLaren Lendária",
+  "Rubens Barrichello": "Ferrari Lendária",
+  "David Coulthard": "McLaren Lendária",
+  "Felipe Massa": "Ferrari Lendária",
+};
+
+eras.lendaria.pilotos = poolHistorico.slice(0,22).map((p) => {
+  const nomeEquipe = EQUIPE_HISTORICA[p.nome];
+  const t = eras.lendaria.teams.find(eq => eq.nome === nomeEquipe) || eras.lendaria.teams[0];
+  return {nome:p.nome, equipe:t.nome, qualy:p.qualy, ritmo:p.ritmo, cons:p.cons, carro:t.carro, ultra:p.ultra};
+});
+
+const atributos = [
+  {key:"qualy", label:"Qualy (volta única)"},
+  {key:"ritmo", label:"Ritmo de corrida"},
+  {key:"cons", label:"Consistência"},
+  {key:"ultra", label:"Ultrapassagem"},
+];
+
+// ---------- CALENDÁRIO COMPLETO 2026 — 23 corridas (traçados estilizados, não o mapa oficial) ----------
+const CX = 300, CY = 165, SCX = 235, SCY = 95;
+const circuitosRaw = [
+  {key:"melbourne", nome:"Austrália (Melbourne)", bandeira:"🇦🇺", pontos:[[-0.85,-0.3],[-0.5,-0.65],[-0.1,-0.55],[0.15,-0.75],[0.5,-0.55],[0.85,-0.25],[0.8,0.15],[0.5,0.3],[0.6,0.6],[0.1,0.65],[-0.3,0.5],[-0.7,0.25]]},
+  {key:"shanghai", nome:"China (Xangai)", bandeira:"🇨🇳", pontos:[[-0.85,-0.1],[-0.6,-0.45],[-0.35,-0.3],[-0.45,-0.05],[-0.2,0.05],[-0.3,-0.55],[0.1,-0.7],[0.5,-0.6],[0.9,-0.2],[0.85,0.4],[0.3,0.65],[-0.3,0.55]]},
+  {key:"suzuka", nome:"Japão (Suzuka)", bandeira:"🇯🇵", pontos:[[-0.85,-0.4],[-0.5,-0.7],[-0.15,-0.5],[0.05,-0.7],[0.3,-0.45],[0.05,-0.15],[0.35,0.05],[0.65,-0.2],[0.9,0.15],[0.55,0.45],[0.2,0.25],[-0.1,0.5],[-0.5,0.35],[-0.8,0.1]]},
+  {key:"miami", nome:"EUA (Miami)", bandeira:"🇺🇸", pontos:[[-0.85,-0.5],[-0.3,-0.65],[0.3,-0.6],[0.85,-0.4],[0.8,0.0],[0.4,-0.05],[0.35,0.3],[0.7,0.35],[0.6,0.65],[0.0,0.6],[-0.4,0.4],[-0.8,0.1]]},
+  {key:"montreal", nome:"Canadá (Montreal)", bandeira:"🇨🇦", pontos:[[-0.9,-0.4],[-0.5,-0.7],[0.0,-0.6],[0.5,-0.7],[0.9,-0.3],[0.85,0.2],[0.5,0.15],[0.4,0.5],[0.1,0.35],[-0.3,0.55],[-0.7,0.25]]},
+  {key:"monaco", nome:"Mônaco", bandeira:"🇲🇨", pontos:[[-0.9,-0.1],[-0.6,-0.55],[-0.3,-0.4],[-0.35,-0.05],[-0.1,-0.15],[0.1,-0.7],[0.35,-0.5],[0.2,-0.15],[0.5,0.0],[0.55,-0.4],[0.85,-0.2],[0.7,0.3],[0.2,0.55],[-0.5,0.6]]},
+  {key:"barcelona", nome:"Espanha (Barcelona)", bandeira:"🇪🇸", pontos:[[-0.85,-0.25],[-0.5,-0.6],[-0.05,-0.55],[0.2,-0.75],[0.55,-0.5],[0.9,-0.15],[0.75,0.25],[0.35,0.15],[0.3,0.5],[-0.05,0.35],[-0.4,0.6],[-0.75,0.2]]},
+  {key:"austria", nome:"Áustria (Red Bull Ring)", bandeira:"🇦🇹", pontos:[[-0.8,-0.4],[-0.2,-0.7],[0.5,-0.5],[0.85,-0.1],[0.6,0.4],[0.1,0.6],[-0.4,0.5],[-0.75,0.1]]},
+  {key:"silverstone", nome:"Grã-Bretanha (Silverstone)", bandeira:"🇬🇧", pontos:[[-0.85,-0.3],[-0.5,-0.7],[0.0,-0.8],[0.5,-0.6],[0.9,-0.2],[0.85,0.3],[0.4,0.7],[-0.1,0.6],[-0.5,0.75],[-0.9,0.2]]},
+  {key:"spa", nome:"Bélgica (Spa-Francorchamps)", bandeira:"🇧🇪", pontos:[[-0.9,-0.15],[-0.55,-0.55],[-0.35,-0.35],[-0.45,-0.05],[-0.1,-0.15],[0.1,-0.75],[0.4,-0.55],[0.85,-0.2],[0.7,0.15],[0.85,0.5],[0.35,0.7],[-0.1,0.5],[-0.4,0.65],[-0.7,0.4]]},
+  {key:"hungria", nome:"Hungria (Hungaroring)", bandeira:"🇭🇺", pontos:[[-0.85,-0.15],[-0.6,-0.5],[-0.3,-0.35],[-0.15,-0.6],[0.15,-0.45],[0.05,-0.15],[0.35,-0.05],[0.45,-0.4],[0.75,-0.2],[0.65,0.15],[0.3,0.3],[0.35,0.6],[-0.1,0.55],[-0.55,0.4]]},
+  {key:"zandvoort", nome:"Holanda (Zandvoort)", bandeira:"🇳🇱", pontos:[[-0.8,-0.3],[-0.45,-0.65],[0.0,-0.55],[0.35,-0.7],[0.75,-0.3],[0.7,0.15],[0.35,0.1],[0.4,0.55],[-0.1,0.5],[-0.55,0.2]]},
+  {key:"monza", nome:"Itália (Monza)", bandeira:"🇮🇹", pontos:[[-0.9,-0.6],[-0.3,-0.7],[-0.15,-0.55],[0.0,-0.68],[0.9,-0.6],[0.95,-0.1],[0.65,0.02],[0.8,0.15],[0.9,0.35],[0.85,0.65],[0.1,0.62],[-0.05,0.5],[-0.2,0.65],[-0.9,0.6]]},
+  {key:"madring", nome:"Espanha (Madri)", bandeira:"🇪🇸", pontos:[[-0.85,-0.2],[-0.5,-0.55],[-0.1,-0.4],[0.2,-0.65],[0.55,-0.4],[0.9,-0.1],[0.7,0.25],[0.3,0.1],[0.25,0.5],[-0.15,0.35],[-0.5,0.55],[-0.75,0.15]]},
+  {key:"baku", nome:"Azerbaijão (Baku)", bandeira:"🇦🇿", pontos:[[-0.95,0.0],[-0.6,-0.55],[-0.2,-0.3],[0.0,-0.6],[0.3,-0.35],[0.95,-0.05],[0.9,0.4],[0.4,0.5],[0.0,0.3],[-0.5,0.5]]},
+  {key:"sepang", nome:"Malásia (Sepang)", bandeira:"🇲🇾", pontos:[[-0.85,-0.3],[-0.4,-0.65],[0.1,-0.5],[0.5,-0.7],[0.9,-0.25],[0.8,0.25],[0.35,0.15],[0.4,0.55],[-0.05,0.4],[-0.45,0.6],[-0.75,0.15]]},
+  {key:"singapura", nome:"Singapura (Marina Bay)", bandeira:"🇸🇬", noturna:true, pontos:[[-0.85,-0.6],[-0.2,-0.6],[-0.2,-0.2],[0.4,-0.2],[0.4,-0.6],[0.9,-0.6],[0.9,0.2],[0.3,0.2],[0.3,0.65],[-0.4,0.65],[-0.4,0.2],[-0.85,0.2]]},
+  {key:"cota", nome:"EUA (Austin)", bandeira:"🇺🇸", pontos:[[-0.85,-0.6],[-0.6,-0.75],[-0.45,-0.55],[-0.3,-0.7],[-0.15,-0.5],[0.05,-0.68],[0.3,-0.45],[0.6,-0.65],[0.9,-0.25],[0.7,0.15],[0.9,0.5],[0.3,0.7],[-0.3,0.55],[-0.7,0.3]]},
+  {key:"mexico", nome:"México (Cidade do México)", bandeira:"🇲🇽", pontos:[[-0.85,-0.45],[-0.4,-0.7],[0.1,-0.55],[0.5,-0.7],[0.9,-0.3],[0.85,0.2],[0.5,0.3],[0.35,0.05],[0.15,0.35],[0.3,0.6],[-0.2,0.55],[-0.6,0.25]]},
+  {key:"brasil", nome:"Brasil (São Paulo)", bandeira:"🇧🇷", pontos:[[-0.85,-0.55],[-0.55,-0.7],[-0.35,-0.5],[-0.1,-0.65],[0.25,-0.55],[0.85,-0.5],[0.85,0.1],[0.55,0.15],[0.5,0.5],[0.15,0.6],[-0.1,0.35],[-0.45,0.55],[-0.7,0.35],[-0.9,-0.15]]},
+  {key:"vegas", nome:"EUA (Las Vegas)", bandeira:"🇺🇸", noturna:true, pontos:[[-0.9,-0.7],[0.9,-0.7],[0.95,0.0],[0.9,0.7],[-0.2,0.7],[-0.9,0.65],[-0.95,0.0],[-0.9,-0.65]]},
+  {key:"lusail", nome:"Catar (Lusail)", bandeira:"🇶🇦", noturna:true, pontos:[[-0.85,-0.2],[-0.55,-0.55],[-0.25,-0.35],[-0.3,-0.05],[-0.05,-0.15],[0.2,-0.6],[0.5,-0.45],[0.4,-0.1],[0.65,0.0],[0.85,-0.3],[0.9,0.25],[0.5,0.4],[0.15,0.25],[-0.3,0.5]]},
+  {key:"yasmarina", nome:"Abu Dhabi (Yas Marina)", bandeira:"🇦🇪", pontos:[[-0.85,-0.35],[-0.4,-0.6],[0.05,-0.45],[0.4,-0.65],[0.85,-0.3],[0.9,0.15],[0.5,0.2],[0.55,0.55],[0.1,0.5],[-0.15,0.25],[-0.45,0.5],[-0.75,0.1]]},
+];
+const circuitos = circuitosRaw.map(c => ({
+  ...c,
+  pontosAbs: c.pontos.map(([x,y]) => ({x: x*SCX+CX, y: y*SCY+CY}))
+}));
+
+function catmullRom(p0,p1,p2,p3,t){
+  const t2=t*t, t3=t2*t;
+  return {
+    x: 0.5*((2*p1.x) + (-p0.x+p2.x)*t + (2*p0.x-5*p1.x+4*p2.x-p3.x)*t2 + (-p0.x+3*p1.x-3*p2.x+p3.x)*t3),
+    y: 0.5*((2*p1.y) + (-p0.y+p2.y)*t + (2*p0.y-5*p1.y+4*p2.y-p3.y)*t2 + (-p0.y+3*p1.y-3*p2.y+p3.y)*t3)
+  };
+}
+function buildTrackPath(points){
+  const n = points.length;
+  const samplesPerSegment = Math.max(10, Math.round(230/n));
+  const dense = [];
+  for(let i=0;i<n;i++){
+    const p0=points[(i-1+n)%n], p1=points[i], p2=points[(i+1)%n], p3=points[(i+2)%n];
+    for(let j=0;j<samplesPerSegment;j++){
+      dense.push(catmullRom(p0,p1,p2,p3,j/samplesPerSegment));
+    }
+  }
+  return {dense, total: dense.length};
+}
+function trackPointAt(trackData, s){
+  const N = trackData.total;
+  const idx = ((s % N)+N)%N;
+  const i0 = Math.floor(idx), i1=(i0+1)%N, frac=idx-i0;
+  const a=trackData.dense[i0], b=trackData.dense[i1];
+  return {x: a.x+(b.x-a.x)*frac, y: a.y+(b.y-a.y)*frac};
+}
+function hexToRgb(hex){
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substring(0,2),16), g = parseInt(hex.substring(2,4),16), b = parseInt(hex.substring(4,6),16);
+  return `${r},${g},${b}`;
+}
+
+const LENDARIOS_LIMIAR = 400;
+const EQUIPES_TOP_LIMIAR = 200;
+const PONTOS_POSICAO = [25,18,15,12,10,8,6,4,2,1];
+const CONSTRUTORES_PONTOS_CARREIRA = [20,16,13,10,8,6,4,3,2,1,0];
+
+function carregarUltimoNome(){ return localStorage.getItem("f1_ultimo_nome"); }
+function salvarUltimoNome(nome){ localStorage.setItem("f1_ultimo_nome", nome); }
+function renderNomeAnterior(){
+  const ultimo = carregarUltimoNome();
+  const box = document.getElementById("nomeAnteriorBox");
+  if(ultimo && ultimo !== "Seu Piloto"){
+    box.innerHTML = `<p style="font-size:12.5px;color:var(--text-dim);margin:-4px 0 12px">Deseja usar o mesmo nome de antes? <span style="color:var(--accent2);cursor:pointer;text-decoration:underline" onclick="document.getElementById('nomePiloto').value='${ultimo.replace(/'/g,"")}'">${ultimo}</span></p>`;
+  } else {
+    box.innerHTML = "";
+  }
+}
+
+function carregarProgresso(){
+  const raw = localStorage.getItem("f1_progresso");
+  return raw ? JSON.parse(raw) : {pontos:0};
+}
+function salvarProgresso(p){ localStorage.setItem("f1_progresso", JSON.stringify(p)); }
+
+function carregarTrofeus(){
+  const raw = localStorage.getItem("f1_trofeus");
+  return raw ? JSON.parse(raw) : {ouro:0, prata:0, bronze:0, titulos:0};
+}
+function salvarTrofeus(t){ localStorage.setItem("f1_trofeus", JSON.stringify(t)); }
+
+function carregarHall(){
+  const raw = localStorage.getItem("f1_hall");
+  return raw ? JSON.parse(raw) : [];
+}
+function salvarHall(h){ localStorage.setItem("f1_hall", JSON.stringify(h)); }
+
+function carregarGaragem(){
+  const raw = localStorage.getItem("f1_garagem");
+  return raw ? JSON.parse(raw) : [];
+}
+function salvarGaragem(g){ localStorage.setItem("f1_garagem", JSON.stringify(g)); }
+function registrarNaGaragem(nome){
+  const g = carregarGaragem();
+  if(!g.includes(nome)){ g.push(nome); salvarGaragem(g); }
+}
+
+function carregarConquistas(){
+  const raw = localStorage.getItem("f1_conquistas");
+  return raw ? JSON.parse(raw) : {};
+}
+function salvarConquistas(c){ localStorage.setItem("f1_conquistas", JSON.stringify(c)); }
+const CONQUISTAS_INFO = {
+  "primeira-vitoria": {nome:"Primeira Vitória", desc:"Vença sua primeira corrida"},
+  "campeao-mundial": {nome:"Campeão Mundial", desc:"Vença uma temporada inteira"},
+  "campeao-invicto": {nome:"Campeão Invicto", desc:"Vença todas as corridas de uma temporada"},
+  "campeao-regular": {nome:"Zero a Herói", desc:"Seja campeão usando só pilotos Regulares no draft"},
+};
+function desbloquearConquista(key){
+  const c = carregarConquistas();
+  if(!c[key]){ c[key] = true; salvarConquistas(c); return true; }
+  return false;
+}
+function tierDesbloqueado(progresso){
+  return progresso.pontos >= LENDARIOS_LIMIAR ? 2 : 1;
+}
+function renderProgresso(){
+  const p = carregarProgresso();
+  const tr = carregarTrofeus();
+  const t = tierDesbloqueado(p);
+  const proximo = t<2 ? LENDARIOS_LIMIAR : null;
+  let barraPct = proximo ? Math.min(100, (p.pontos/proximo)*100) : 100;
+  const nomeTier = t===2 ? "Lendários" : "Com História";
+  document.getElementById("progressoInfo").innerHTML = `
+    <div>🏆 Pontos de carreira: <b>${p.pontos}</b> · Nível de piloto no draft: <b>${nomeTier}</b></div>
+    <div style="margin-top:6px">🥇 ${tr.ouro} · 🥈 ${tr.prata} · 🥉 ${tr.bronze} · 🏆 ${tr.titulos} título(s) mundial(is)</div>
+    ${proximo ? `<div class="barra"><div class="barra-fill" style="width:${barraPct}%"></div></div>
+    <div style="color:var(--text-dim);margin-top:4px">Faltam ${proximo-p.pontos} pontos pra desbloquear os Lendários</div>` : `<div style="color:var(--text-dim);margin-top:4px">Todos os níveis desbloqueados!</div>`}
+  `;
+}
+
+let eraAtual = null, equipeEscolhida = null;
+let draftIndex = 0, rerollsRestantes = 3, opcoesAtuais = [];
+let playerAttrs = {};
+let rerollsEquipe = 1;
+let tierAtualDraft = 1;
+
+function irStep(n){
+  document.querySelectorAll(".step").forEach(s=>s.classList.remove("ativo"));
+  document.getElementById("step"+n).classList.add("ativo");
+  document.querySelectorAll("#stepsNav div").forEach((el,i)=> el.classList.toggle("ativo", i===Math.min(n,5)-1));
+  if(n===1){ renderProgresso(); renderNomeAnterior(); }
+}
+
+function escolherEra(key){
+  eraAtual = eras[key];
+  rerollsEquipe = 1;
+  irStep(2);
+  sortearEquipes();
+}
+
+const EQUIPES_TOP = ["Red Bull","McLaren","Ferrari","Mercedes","Red Bull Lendária","McLaren Lendária","Ferrari Lendária","Mercedes Lendária"];
+
+function sortearEquipes(usaReroll){
+  if(usaReroll){
+    if(rerollsEquipe <= 0) return;
+    rerollsEquipe--;
+  }
+  document.getElementById("rerollsEquipeVal").textContent = rerollsEquipe;
+  document.getElementById("btnRerollEquipe").disabled = rerollsEquipe <= 0;
+
+  const pontosAtuais = carregarProgresso().pontos;
+  const equipesDisponiveis = eraAtual.teams.filter(t => pontosAtuais >= EQUIPES_TOP_LIMIAR || !EQUIPES_TOP.includes(t.nome));
+  const sorteadas = [...equipesDisponiveis].sort(()=>Math.random()-0.5).slice(0,5);
+  const lista = document.getElementById("listaEquipes");
+  lista.innerHTML = sorteadas.map(t =>
+    `<div class="opcao" onclick='escolherEquipe(${JSON.stringify(t.nome)}, ${t.carro})'>
+      <b>${t.nome}</b>
+    </div>`
+  ).join("");
+}
+
+function escolherEquipe(nome, carro){
+  equipeEscolhida = {nome, carro};
+  draftIndex = 0; rerollsRestantes = 3; playerAttrs = {};
+  tierAtualDraft = tierDesbloqueado(carregarProgresso());
+  irStep(3);
+  document.getElementById("btnReroll").style.display = "";
+  renderRodada();
+}
+
+function poolDisponivel(){ return poolHistorico.filter(p => p.tier <= tierAtualDraft); }
+function sortearTres(){
+  const disponiveis = poolDisponivel();
+  return [...disponiveis].sort(()=>Math.random()-0.5).slice(0,5);
+}
+
+function renderRodada(){
+  const atr = atributos[draftIndex];
+  document.getElementById("draftAtual").textContent = draftIndex+1;
+  document.getElementById("draftLabel").textContent = atr.label;
+  document.getElementById("rerollsVal").textContent = rerollsRestantes;
+  document.getElementById("btnReroll").disabled = rerollsRestantes <= 0;
+
+  opcoesAtuais = sortearTres();
+  document.getElementById("opcoesDraft").innerHTML = opcoesAtuais.map((p,i) =>
+    `<div class="opcao-piloto" onclick="escolherOpcao(${i})"><span class="nome">${p.nome}</span></div>`
+  ).join("");
+  renderResumo();
+}
+function sortearNovamente(){
+  if(rerollsRestantes <= 0) return;
+  rerollsRestantes--;
+  renderRodada();
+}
+function escolherOpcao(i){
+  const atr = atributos[draftIndex];
+  const piloto = opcoesAtuais[i];
+  playerAttrs[atr.key] = Math.min(99, piloto[atr.key] + 2); // +2 de preparação/adaptação do seu piloto
+  playerAttrs[atr.key+"_origem"] = piloto.nome;
+  playerAttrs[atr.key+"_tier"] = piloto.tier;
+  registrarNaGaragem(piloto.nome);
+  draftIndex++;
+  if(draftIndex < atributos.length) renderRodada();
+  else finalizarDraft();
+}
+function renderResumo(){
+  const linhas = atributos.map(a => playerAttrs[a.key] !== undefined
+    ? `<div><span>${a.label}</span><span>${playerAttrs[a.key+"_origem"]}</span></div>` : ""
+  ).join("");
+  document.getElementById("resumoDraft").innerHTML = linhas ? `<b>Seu piloto até agora:</b>${linhas}` : "";
+}
+function finalizarDraft(){
+  document.getElementById("opcoesDraft").innerHTML = "";
+  document.getElementById("btnReroll").style.display = "none";
+  document.getElementById("draftLabel").textContent = "Completo!";
+  renderResumo();
+  document.getElementById("resumoDraft").innerHTML += `<button onclick="iniciarTemporada()" style="margin-top:10px">Iniciar Temporada 2026 →</button>`;
+}
+
+// ---------- TEMPORADA ----------
+const TEAM_CORES = {
+  "Red Bull": "#1E41FF",
+  "McLaren": "#FF8000",
+  "Ferrari": "#DC0000",
+  "Mercedes": "#00D2BE",
+  "Aston Martin": "#229971",
+  "Alpine": "#0090FF",
+  "Williams": "#00A0DE",
+  "Audi": "#BB0A30",
+  "Haas": "#B6BABD",
+  "Racing Bulls": "#6C98FF",
+  "Cadillac": "#003DA5",
+  "Mercedes Lendária": "#C0C0C0",
+  "McLaren Lendária": "#FF2800",
+  "Ferrari Lendária": "#DC0000",
+  "Williams Lendária": "#003087",
+  "Lotus Lendária": "#C9A227",
+  "Tyrrell Lendária": "#003DA5",
+  "Brabham Lendária": "#0047AB",
+  "Red Bull Lendária": "#1E1E4A",
+};
+
+let seasonCars = [], seasonRound = 0, seasonCareerPoints = 0, carreiraConfirmada = false;
+let seasonXP = 0;
+const XP_POSICAO = [25,18,15,12,10,8,6,4,2,1];
+let rivalIdx = null, rivalVitorias = 0, rivalDerrotas = 0, vitoriasNaTemporada = 0;
+let corridasForaLesao = 0, textoLesaoAtual = "";
+
+const NOTICIAS = [
+  "☔ Previsão de chuva pra próxima corrida — pilotos consistentes levam vantagem.",
+  "🔧 Boatos de upgrade no motor de uma das equipes de ponta.",
+  "🗣️ Piloto rival dá entrevista polêmica sobre a estratégia do fim de semana.",
+  "🏎️ Fãs lotam as arquibancadas pra mais um final de semana de corrida.",
+  "📉 Uma equipe reclama de degradação de pneu excessiva no último treino livre.",
+  "🎙️ Comentaristas apontam você como surpresa da temporada até aqui.",
+  "🛠️ Pequeno susto na garagem, mas o carro é liberado a tempo pro grid.",
+  "🌡️ Temperatura alta na pista — degradação deve ser fator decisivo.",
+  "📸 Paddock badalado: patrocinadores confirmam presença no fim de semana.",
+  "🚨 Safety car de última hora é cogitado pelos comissários de prova.",
+  "💥 Dois pilotos do meio do pelotão se tocam no treino classificatório de ontem.",
+  "🚧 Comissários avaliam mudar o ponto de largada do safety car virtual pra essa corrida.",
+  "🏴 Bandeira amarela no último treino livre depois de um trompo em curva rápida.",
+  "🔋 Boato de nova especificação de bateria testada em segredo por uma equipe de ponta.",
+];
+
+// eventos de decisão — o jogador escolhe, e a escolha tem efeito real (pequeno)
+const EVENTOS_DECISAO = [
+  {
+    texto: "🥤 Um patrocinador te oferece uma lata de um energético 'especial' antes do treino. Vai beber?",
+    simLabel: "Beber",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.cons = Math.min(99, Math.round(player.cons*1.03)); return "Sua Consistência subiu 3%. Bora ver se foi coincidência..."; },
+    aplicarNao: () => "Melhor não arriscar. Nada muda."
+  },
+  {
+    texto: "🎉 Verstappen te chama pra um evento de patrocinador na noite antes da corrida. Vai?",
+    simLabel: "Aceitar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.ultra = Math.min(99, Math.round(player.ultra*1.03)); return "Boa noite de conversa entre pilotos — sua Ultrapassagem subiu 3%."; },
+    aplicarNao: () => "Você prefere focar no fim de semana. Nada muda."
+  },
+  {
+    texto: "🌧️ O engenheiro sugere um setup arriscado, pensado pra chuva que pode não vir. Testa?",
+    simLabel: "Arriscar",
+    naoLabel: "Jogar seguro",
+    aplicarSim: (player) => { player.qualy = Math.min(99, Math.round(player.qualy*1.03)); return "Deu certo — sua Qualy subiu 3%."; },
+    aplicarNao: () => "Você joga seguro. Nada muda."
+  },
+  {
+    texto: "🕹️ A equipe libera o simulador de madrugada pra um treino extra de ritmo de corrida. Topa perder sono?",
+    simLabel: "Treinar",
+    naoLabel: "Dormir",
+    aplicarSim: (player) => { player.ritmo = Math.min(99, Math.round(player.ritmo*1.03)); return "Horas extras valeram a pena — seu Ritmo subiu 3%."; },
+    aplicarNao: () => "Descanso em dia. Nada muda."
+  },
+  {
+    texto: "💪 O preparador físico monta um programa pesado de resistência aeróbica pra essa semana. Encara?",
+    simLabel: "Encarar",
+    naoLabel: "Poupar energia",
+    aplicarSim: (player) => { player.ritmo = Math.min(99, Math.round(player.ritmo*1.03)); return "Resistência lá em cima — seu Ritmo subiu 3%."; },
+    aplicarNao: () => "Você prefere poupar energia. Nada muda."
+  },
+  {
+    texto: "🧠 Um psicólogo esportivo oferece uma sessão de foco mental antes do fim de semana. Vale a pena?",
+    simLabel: "Fazer a sessão",
+    naoLabel: "Dispensar",
+    aplicarSim: (player) => { player.cons = Math.min(99, Math.round(player.cons*1.03)); return "Cabeça no lugar — sua Consistência subiu 3%."; },
+    aplicarNao: () => "Você confia no instinto. Nada muda."
+  },
+  {
+    texto: "🏁 Um antigo rival te desafia pra um treino informal de kart antes da corrida. Encara?",
+    simLabel: "Encarar",
+    naoLabel: "Ignorar",
+    aplicarSim: (player) => { player.ultra = Math.min(99, Math.round(player.ultra*1.03)); return "Reflexos afiados — sua Ultrapassagem subiu 3%."; },
+    aplicarNao: () => "Você ignora a provocação. Nada muda."
+  },
+  {
+    texto: "🥽 Oferecem um óculos de treino de reflexos de última geração pros treinos livres. Testa?",
+    simLabel: "Testar",
+    naoLabel: "Ignorar",
+    aplicarSim: (player) => { player.qualy = Math.min(99, Math.round(player.qualy*1.03)); return "Reação mais rápida — sua Qualy subiu 3%."; },
+    aplicarNao: () => "Você segue a rotina normal. Nada muda."
+  },
+  {
+    texto: "🔧 Os engenheiros pedem autorização pra testar um pacote aerodinâmico experimental, ainda não totalmente validado. Autoriza?",
+    simLabel: "Autorizar",
+    naoLabel: "Negar",
+    aplicarSim: (player) => { player.carro = Math.min(99, Math.round(player.carro*1.03)); return "O pacote funcionou — a Performance do carro subiu 3%."; },
+    aplicarNao: () => "Você prefere não arriscar o setup atual. Nada muda."
+  },
+  {
+    texto: "📸 O chefe de equipe pede pra você gravar conteúdo de mídia social a manhã toda antes do treino livre. Topa?",
+    simLabel: "Aceitar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.ritmo = Math.max(30, Math.round(player.ritmo*0.98)); return "Os fãs adoraram, mas sobrou menos tempo de preparação — seu Ritmo caiu 2%."; },
+    aplicarNao: () => "Você prioriza o treino. Nada muda."
+  },
+  {
+    texto: "🍾 A equipe comemora um resultado recente e a festa vai até tarde. Você aparece?",
+    simLabel: "Aparecer",
+    naoLabel: "Ficar no hotel",
+    aplicarSim: (player) => { player.ultra = Math.min(99, Math.round(player.ultra*1.02)); seasonXP = Math.max(0, seasonXP-5); return "Moral lá em cima (Ultrapassagem +2%), mas você perdeu 5 de XP acumulado por causa da noite maldormida."; },
+    aplicarNao: () => "Você prefere descansar. XP intacto."
+  },
+  {
+    texto: "🎤 Um patrocinador pede uma entrevista longa e cansativa pra imprensa internacional. Ajuda a marca, mas toma tempo de treino. Topa?",
+    simLabel: "Aceitar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.qualy = Math.min(99, Math.round(player.qualy*1.02)); seasonXP = Math.max(0, seasonXP-4); return "Boa exposição pro patrocinador (Qualy +2%), mas você perdeu 4 de XP acumulado."; },
+    aplicarNao: () => "Você mantém o foco no treino. XP intacto."
+  },
+  {
+    texto: "📋 Uma reunião extra de patrocínio é marcada bem no horário que seria da sua sessão de trabalho físico. Vai à reunião?",
+    simLabel: "Ir à reunião",
+    naoLabel: "Manter o treino",
+    aplicarSim: () => { seasonXP = Math.max(0, seasonXP-3); return "O contrato fica mais forte, mas você perdeu 3 de XP acumulado por pular o treino."; },
+    aplicarNao: () => "Você prioriza a preparação física. XP intacto."
+  },
+  {
+    texto: "🗞️ Um jornalista insiste numa entrevista investigativa sobre os bastidores da equipe. Encara?",
+    simLabel: "Encarar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.ritmo = Math.min(99, Math.round(player.ritmo*1.02)); seasonXP = Math.max(0, seasonXP-4); return "Você sai bem na entrevista (Ritmo +2%), mas perdeu 4 de XP acumulado com a distração."; },
+    aplicarNao: () => "Você educadamente recusa. XP intacto."
+  },
+  {
+    texto: "🎮 Você é convidado pra um campeonato beneficente de esports na noite antes da corrida. Topa?",
+    simLabel: "Participar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.cons = Math.min(99, Math.round(player.cons*1.02)); seasonXP = Math.max(0, seasonXP-3); return "Boa causa e boa distração leve (Consistência +2%), mas custou 3 de XP acumulado."; },
+    aplicarNao: () => "Você foca no fim de semana. XP intacto."
+  },
+  {
+    texto: "🧪 A equipe sugere testar um combustível especial ainda em fase de aprovação da FIA. Autoriza?",
+    simLabel: "Autorizar",
+    naoLabel: "Negar",
+    aplicarSim: (player) => { player.ritmo = Math.min(99, Math.round(player.ritmo*1.03)); return "Funcionou bem — seu Ritmo subiu 3%."; },
+    aplicarNao: () => "Você prefere não arriscar. Nada muda."
+  },
+  {
+    texto: "🎙️ Um podcast famoso te convida pra participar ao vivo na noite de sexta. Vai?",
+    simLabel: "Participar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.ultra = Math.min(99, Math.round(player.ultra*1.02)); seasonXP = Math.max(0, seasonXP-3); return "Boa exposição (Ultrapassagem +2%), mas custou 3 de XP acumulado."; },
+    aplicarNao: () => "Você prefere descansar. XP intacto."
+  },
+  {
+    texto: "🧊 Os engenheiros querem testar um resfriamento experimental de pneus. Autoriza?",
+    simLabel: "Autorizar",
+    naoLabel: "Negar",
+    aplicarSim: (player) => { player.carro = Math.min(99, Math.round(player.carro*1.03)); return "Deu certo — a Performance do carro subiu 3%."; },
+    aplicarNao: () => "Você mantém o setup atual. Nada muda."
+  },
+  {
+    texto: "🕶️ Uma marca de óculos oferece um contrato relâmpago em troca de uma sessão de fotos antes do treino. Topa?",
+    simLabel: "Aceitar",
+    naoLabel: "Recusar",
+    aplicarSim: (player) => { player.qualy = Math.min(99, Math.round(player.qualy*1.02)); seasonXP = Math.max(0, seasonXP-3); return "Bom dinheiro extra (Qualy +2%), mas custou 3 de XP acumulado."; },
+    aplicarNao: () => "Você foca no treino. XP intacto."
+  },
+  {
+    texto: "🍺 Os colegas de equipe te chamam pra um happy hour depois do treino classificatório. Vai?",
+    simLabel: "Ir",
+    naoLabel: "Ficar no hotel",
+    aplicarSim: (player) => { player.ultra = Math.min(99, Math.round(player.ultra*1.02)); seasonXP = Math.max(0, seasonXP-4); return "Moral do grupo lá em cima (Ultrapassagem +2%), mas custou 4 de XP acumulado."; },
+    aplicarNao: () => "Você prefere descansar. XP intacto."
+  },
+  {
+    texto: "📖 O psicólogo da equipe recomenda um livro sobre mentalidade vencedora. Vale a leitura?",
+    simLabel: "Ler",
+    naoLabel: "Ignorar",
+    aplicarSim: (player) => { player.cons = Math.min(99, Math.round(player.cons*1.03)); return "Boas ideias — sua Consistência subiu 3%."; },
+    aplicarNao: () => "Você prefere descansar a cabeça. Nada muda."
+  },
+];
+
+// eventos de adversidade — acontecem sem escolha, atrapalham de verdade
+const EVENTOS_ADVERSIDADE = [
+  { texto: "🏥 Acidente no treino livre: você quebrou o dedo! Fora das próximas 2 corridas.", corridas: 2 },
+  { texto: "🤒 Você pegou uma virose feia essa semana. Fora da próxima corrida.", corridas: 1 },
+];
+
+let eventoAtual = null;
+
+// eventos automáticos — acontecem sozinhos, sem escolha, pra dar textura à temporada
+const EVENTOS_ALEATORIOS = [
+  // ruins (7)
+  { texto: "🌧️ Você errou a janela de troca de pneus na corrida passada — a equipe ainda ajusta a estratégia.", tipo:"ruim",
+    efeito:(p)=>{ p.cons = Math.max(30, Math.round(p.cons*0.98)); return "Consistência caiu 2%."; } },
+  { texto: "🛞 Um problema de fornecedor atrasa peças novas pro seu carro essa semana.", tipo:"ruim",
+    efeito:(p)=>{ p.carro = Math.max(30, Math.round(p.carro*0.98)); return "Performance do carro caiu 2%."; } },
+  { texto: "😤 Você discutiu com o engenheiro-chefe sobre estratégia e o clima na garagem esfriou.", tipo:"ruim",
+    efeito:(p)=>{ p.ritmo = Math.max(30, Math.round(p.ritmo*0.98)); return "Ritmo caiu 2%."; } },
+  { texto: "📉 Pesquisa de mídia aponta queda na sua popularidade essa semana.", tipo:"ruim",
+    efeito:()=>{ seasonXP = Math.max(0, seasonXP-3); return "Moral baixa custou 3 de XP acumulado."; } },
+  { texto: "🦵 Uma dor muscular chata do treino de resistência atrapalha seu foco nos treinos livres.", tipo:"ruim",
+    efeito:(p)=>{ p.qualy = Math.max(30, Math.round(p.qualy*0.98)); return "Qualy caiu 2%."; } },
+  { texto: "✈️ Você perde a conexão de voo e chega cansado no paddock.", tipo:"ruim",
+    efeito:(p)=>{ p.cons = Math.max(30, Math.round(p.cons*0.98)); return "Consistência caiu 2%."; } },
+  { texto: "🚨 Multa por excesso de velocidade no pit lane no treino livre — a FIA te deixou de olho.", tipo:"ruim",
+    efeito:(p)=>{ p.ultra = Math.max(30, Math.round(p.ultra*0.98)); return "Ultrapassagem caiu 2%, você fica mais cauteloso."; } },
+  { texto: "🌡️ Superaquecimento nos freios durante o treino livre preocupa a equipe.", tipo:"ruim",
+    efeito:(p)=>{ p.carro = Math.max(30, Math.round(p.carro*0.98)); return "Performance do carro caiu 2%."; } },
+  { texto: "🧳 Sua bagagem foi extraviada e o equipamento de corrida chegou atrasado.", tipo:"ruim",
+    efeito:(p)=>{ p.cons = Math.max(30, Math.round(p.cons*0.98)); return "Consistência caiu 2%."; } },
+  { texto: "📻 Falha na comunicação por rádio atrapalha um treino importante.", tipo:"ruim",
+    efeito:(p)=>{ p.ritmo = Math.max(30, Math.round(p.ritmo*0.98)); return "Ritmo caiu 2%."; } },
+  { texto: "🥵 O jet lag dessa etapa te deixou mal dormido a semana toda.", tipo:"ruim",
+    efeito:(p)=>{ p.qualy = Math.max(30, Math.round(p.qualy*0.98)); return "Qualy caiu 2%."; } },
+  { texto: "🐝 Um enxame de insetos invade a garagem e atrapalha os mecânicos no meio do trabalho.", tipo:"ruim",
+    efeito:(p)=>{ p.carro = Math.max(30, Math.round(p.carro*0.98)); return "Performance do carro caiu 2%."; } },
+  { texto: "💢 Uma briga boba nas redes sociais consome sua energia mental essa semana.", tipo:"ruim",
+    efeito:()=>{ seasonXP = Math.max(0, seasonXP-3); return "Distração custou 3 de XP acumulado."; } },
+  { texto: "🧯 Problema no sistema de refrigeração do macacão te deixa desconfortável no treino.", tipo:"ruim",
+    efeito:(p)=>{ p.cons = Math.max(30, Math.round(p.cons*0.98)); return "Consistência caiu 2%."; } },
+  { texto: "🚧 Obras no acesso ao autódromo atrasam sua chegada e cortam tempo de preparação.", tipo:"ruim",
+    efeito:(p)=>{ p.ritmo = Math.max(30, Math.round(p.ritmo*0.98)); return "Ritmo caiu 2%."; } },
+  { texto: "🩹 Um corte pequeno na mão durante o ajuste do capacete te incomoda no treino.", tipo:"ruim",
+    efeito:(p)=>{ p.ultra = Math.max(30, Math.round(p.ultra*0.98)); return "Ultrapassagem caiu 2%."; } },
+  { texto: "📵 A equipe impõe um 'detox digital' forçado essa semana, e você não gostou nada.", tipo:"ruim",
+    efeito:()=>{ seasonXP = Math.max(0, seasonXP-2); return "Ficou mal humorado — custou 2 de XP acumulado."; } },
+  { texto: "🌪️ Vento forte na pista bagunça o acerto aerodinâmico do carro nos treinos.", tipo:"ruim",
+    efeito:(p)=>{ p.carro = Math.max(30, Math.round(p.carro*0.98)); return "Performance do carro caiu 2%."; } },
+  { texto: "😵 Uma leve labirintite passageira te deixa tonto nos primeiros treinos livres.", tipo:"ruim",
+    efeito:(p)=>{ p.qualy = Math.max(30, Math.round(p.qualy*0.98)); return "Qualy caiu 2%."; } },
+  { texto: "🗣️ Você é mal interpretado numa entrevista e vira assunto negativo na imprensa por uns dias.", tipo:"ruim",
+    efeito:()=>{ seasonXP = Math.max(0, seasonXP-3); return "O desgaste custou 3 de XP acumulado."; } },
+  // bons (8)
+  { texto: "☀️ Semana de treinos perfeita nas instalações da equipe.", tipo:"bom",
+    efeito:(p)=>{ p.ritmo = Math.min(99, Math.round(p.ritmo*1.02)); return "Ritmo subiu 2%."; } },
+  { texto: "🎯 Você bate seu recorde pessoal no simulador da equipe.", tipo:"bom",
+    efeito:(p)=>{ p.qualy = Math.min(99, Math.round(p.qualy*1.02)); return "Qualy subiu 2%."; } },
+  { texto: "🤝 O patrocinador libera verba extra pra desenvolvimento do carro.", tipo:"bom",
+    efeito:(p)=>{ p.carro = Math.min(99, Math.round(p.carro*1.02)); return "Performance do carro subiu 2%."; } },
+  { texto: "📈 Pesquisa aponta você como favorito dos fãs essa semana.", tipo:"bom",
+    efeito:(p)=>{ p.cons = Math.min(99, Math.round(p.cons*1.02)); return "Moral alta — Consistência subiu 2%."; } },
+  { texto: "🧘 Uma sessão de ioga e meditação deixa você mais centrado.", tipo:"bom",
+    efeito:(p)=>{ p.cons = Math.min(99, Math.round(p.cons*1.02)); return "Consistência subiu 2%."; } },
+  { texto: "🏆 Reconhecimento da FIA por conduta exemplar na pista.", tipo:"bom",
+    efeito:(p)=>{ p.ultra = Math.min(99, Math.round(p.ultra*1.02)); return "Mais confiança pra arriscar — Ultrapassagem subiu 2%."; } },
+  { texto: "🍀 Sorte no sorteio de pneus — você recebe o composto que mais gosta.", tipo:"bom",
+    efeito:(p)=>{ p.ritmo = Math.min(99, Math.round(p.ritmo*1.02)); return "Ritmo subiu 2%."; } },
+  { texto: "💪 Avanço real no seu programa de preparo físico.", tipo:"bom",
+    efeito:(p)=>{ p.qualy = Math.min(99, Math.round(p.qualy*1.02)); return "Qualy subiu 2%."; } },
+  { texto: "🎧 Uma playlist nova de foco pré-corrida funciona muito bem pra sua cabeça.", tipo:"bom",
+    efeito:(p)=>{ p.cons = Math.min(99, Math.round(p.cons*1.02)); return "Consistência subiu 2%."; } },
+  { texto: "🛠️ Um ajuste fino de última hora no acerto do carro surpreende positivamente.", tipo:"bom",
+    efeito:(p)=>{ p.carro = Math.min(99, Math.round(p.carro*1.02)); return "Performance do carro subiu 2%."; } },
+  { texto: "🥗 O nutricionista da equipe acerta em cheio no cardápio dessa semana.", tipo:"bom",
+    efeito:(p)=>{ p.ritmo = Math.min(99, Math.round(p.ritmo*1.02)); return "Ritmo subiu 2%."; } },
+  { texto: "🏅 Você recebe um prêmio simbólico de 'piloto mais evoluído' da temporada.", tipo:"bom",
+    efeito:(p)=>{ p.qualy = Math.min(99, Math.round(p.qualy*1.02)); return "Qualy subiu 2%."; } },
+  { texto: "🤙 Uma conversa motivacional com um ídolo de infância te deixa inspirado.", tipo:"bom",
+    efeito:(p)=>{ p.ultra = Math.min(99, Math.round(p.ultra*1.02)); return "Ultrapassagem subiu 2%."; } },
+  { texto: "🌤️ Condições de pista perfeitas nos treinos livres ajudam seu acerto.", tipo:"bom",
+    efeito:(p)=>{ p.carro = Math.min(99, Math.round(p.carro*1.02)); return "Performance do carro subiu 2%."; } },
+  { texto: "📊 Você estuda a fundo os dados de telemetria e encontra ganhos escondidos.", tipo:"bom",
+    efeito:(p)=>{ p.qualy = Math.min(99, Math.round(p.qualy*1.02)); return "Qualy subiu 2%."; } },
+  { texto: "🧬 Exame de rotina confirma um ótimo condicionamento físico.", tipo:"bom",
+    efeito:(p)=>{ p.ritmo = Math.min(99, Math.round(p.ritmo*1.02)); return "Ritmo subiu 2%."; } },
+  { texto: "🎮 Uma sessão descontraída no simulador vira treino de verdade sem você perceber.", tipo:"bom",
+    efeito:(p)=>{ p.qualy = Math.min(99, Math.round(p.qualy*1.02)); return "Qualy subiu 2%."; } },
+  { texto: "🫶 A torcida local te recebe muito bem, e isso mexe com sua confiança.", tipo:"bom",
+    efeito:(p)=>{ p.ultra = Math.min(99, Math.round(p.ultra*1.02)); return "Ultrapassagem subiu 2%."; } },
+  { texto: "🧘‍♂️ Semana tranquila, sem imprevistos, rende foco total nos treinos.", tipo:"bom",
+    efeito:(p)=>{ p.cons = Math.min(99, Math.round(p.cons*1.02)); return "Consistência subiu 2%."; } },
+  { texto: "🚀 Nova especificação de motor libera uns cavalos extras pra sua unidade de potência.", tipo:"bom",
+    efeito:(p)=>{ p.carro = Math.min(99, Math.round(p.carro*1.02)); return "Performance do carro subiu 2%."; } },
+];
+
+function nomeExibicao(c){
+  return c.nome === "Bortoleto" ? "🇧🇷 Bortoleto" : c.nome;
+}
+
+function montarGridComJogador(player){
+  // ao entrar numa equipe, o jogador substitui um piloto daquele time —
+  // o Bortoleto nunca é substituído (protegido)
+  const candidatos = eraAtual.pilotos.filter(p => p.equipe === equipeEscolhida.nome);
+  let substituido = null;
+  if(candidatos.length > 0){
+    substituido = [...candidatos].reverse().find(p => p.nome !== "Bortoleto") || null;
+  }
+  const restante = substituido ? eraAtual.pilotos.filter(p => p !== substituido) : eraAtual.pilotos;
+  return [player, ...restante];
+}
+
+function iniciarTemporada(){
+  const nomeEscolhido = document.getElementById("nomePiloto").value || "Seu Piloto";
+  salvarUltimoNome(nomeEscolhido);
+  const player = {
+    nome: nomeEscolhido,
+    equipe: equipeEscolhida.nome,
+    qualy: playerAttrs.qualy, ritmo: playerAttrs.ritmo,
+    cons: playerAttrs.cons, ultra: playerAttrs.ultra,
+    carro: equipeEscolhida.carro,
+    isPlayer: true
+  };
+  seasonCars = montarGridComJogador(player).map((p,i) => ({
+    ...p, pontosTemporada: 0, cor: TEAM_CORES[p.equipe] || `hsl(${(i*33)%360},75%,55%)`
+  }));
+  rivalIdx = 1 + Math.floor(Math.random()*(seasonCars.length-1));
+  rivalVitorias = 0; rivalDerrotas = 0; vitoriasNaTemporada = 0;
+  corridasForaLesao = 0; textoLesaoAtual = "";
+  seasonRound = 0;
+  seasonCareerPoints = 0;
+  seasonXP = 0;
+  carreiraConfirmada = false;
+  irStep(4);
+  renderTemporada();
+}
+
+function dispararConfete(containerId, qtd){
+  const cont = document.getElementById(containerId);
+  if(!cont) return;
+  const cores = ['#ff2d55','#ff8a00','#00d4ff','#ffd23f','#4ade80','#eef1f6'];
+  for(let i=0;i<qtd;i++){
+    const el = document.createElement('div');
+    el.className = 'confete-piece';
+    el.style.left = Math.random()*100+'%';
+    el.style.background = cores[Math.floor(Math.random()*cores.length)];
+    el.style.animationDuration = (1.1+Math.random()*1.3)+'s';
+    el.style.animationDelay = (Math.random()*0.4)+'s';
+    el.style.transform = `rotate(${Math.random()*360}deg)`;
+    cont.appendChild(el);
+    setTimeout(()=> el.remove(), 3200);
+  }
+}
+
+function compartilharResultado(texto){
+  if(navigator.share){
+    navigator.share({text: texto}).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(texto).then(()=> alert("Resultado copiado! Cole onde quiser compartilhar."));
+  } else {
+    prompt("Copie seu resultado:", texto);
+  }
+}
+
+function classificacaoConstrutores(){
+  const mapa = {};
+  seasonCars.forEach(c => {
+    if(!mapa[c.equipe]) mapa[c.equipe] = {equipe: c.equipe, pontos: 0, temJogador: false};
+    mapa[c.equipe].pontos += c.pontosTemporada;
+    if(c.isPlayer) mapa[c.equipe].temJogador = true;
+  });
+  return Object.values(mapa).sort((a,b)=>b.pontos-a.pontos);
+}
+
+function renderTemporada(){
+  const box = document.getElementById("proximaCorridaBox");
+  const board = document.getElementById("classificacaoTemporada");
+
+  if(seasonRound >= circuitos.length){
+    const ord2 = [...seasonCars].sort((a,b)=>b.pontosTemporada-a.pontosTemporada);
+    const campeao = ord2[0];
+    let extra = "";
+    if(!carreiraConfirmada){
+      const progresso = carregarProgresso();
+      const tierAntes = tierDesbloqueado(progresso);
+      progresso.pontos += seasonCareerPoints;
+
+      const construtoresOrd = classificacaoConstrutores();
+      const posEquipeJogador = construtoresOrd.findIndex(e=>e.temJogador)+1;
+      const pontosConstrutores = CONSTRUTORES_PONTOS_CARREIRA[posEquipeJogador-1] || 0;
+      progresso.pontos += pontosConstrutores;
+      let construtoresTexto = `<div style="margin-top:4px">🏗️ Sua equipe (${equipeEscolhida.nome}) terminou em ${posEquipeJogador}º no campeonato de construtores: <b>+${pontosConstrutores} pontos de carreira</b>.</div>`;
+
+      let bonusTitulo = "";
+      if(campeao.isPlayer){
+        progresso.pontos += 30;
+        const trofeus = carregarTrofeus();
+        trofeus.titulos++;
+        salvarTrofeus(trofeus);
+        bonusTitulo = `<div class="unlock-msg">🏆 CAMPEÃO MUNDIAL! +30 pontos de carreira bônus.</div>`;
+        playFanfare();
+        setTimeout(playFanfare, 500);
+        setTimeout(playApplause, 700);
+        if(desbloquearConquista("campeao-mundial")) bonusTitulo += `<div class="unlock-msg">🏅 Conquista desbloqueada: Campeão Mundial!</div>`;
+        if(vitoriasNaTemporada >= circuitos.length && desbloquearConquista("campeao-invicto")) bonusTitulo += `<div class="unlock-msg">🏅 Conquista desbloqueada: Campeão Invicto!</div>`;
+        const soRegulares = ["qualy","ritmo","cons","ultra"].every(k => playerAttrs[k+"_tier"] === 1);
+        if(soRegulares && desbloquearConquista("campeao-regular")) bonusTitulo += `<div class="unlock-msg">🏅 Conquista desbloqueada: Zero a Herói!</div>`;
+      }
+
+      const hall = carregarHall();
+      hall.unshift({
+        data: new Date().toLocaleDateString('pt-BR'),
+        piloto: document.getElementById("nomePiloto").value || "Seu Piloto",
+        equipe: equipeEscolhida.nome,
+        posicao: ord2.findIndex(c=>c.isPlayer)+1,
+        pontosTemporada: ord2.find(c=>c.isPlayer).pontosTemporada,
+        titulo: campeao.isPlayer,
+      });
+      salvarHall(hall.slice(0,50));
+
+      const tierDepois = tierDesbloqueado(progresso);
+      salvarProgresso(progresso);
+      carreiraConfirmada = true;
+      extra = `<div style="margin-top:8px">✅ Temporada concluída: <b>+${seasonCareerPoints}</b> pontos de carreira confirmados (total: ${progresso.pontos}).</div>${construtoresTexto}${bonusTitulo}`;
+      if(tierDepois > tierAntes) extra += `<div class="unlock-msg">🔓 Novo nível de pilotos desbloqueado no draft!</div>`;
+    }
+    box.innerHTML = `<div class="faixa-quadriculada"></div>${campeao.isPlayer ? '<div class="confete-container" id="confeteTitulo"></div>' : ''}<b>🏆 Temporada encerrada!</b><div style="margin-top:6px">Campeão de pilotos: <b>${nomeExibicao(campeao)}</b> (${campeao.equipe}) com ${campeao.pontosTemporada} pontos.</div>
+      <div style="margin-top:4px">Campeão de construtores: <b>${classificacaoConstrutores()[0].equipe}</b></div>${extra}
+      <button onclick="compartilharResultado(${JSON.stringify(campeao.isPlayer
+        ? `🏆 Fui campeão da Temporada 2026 no GRID 2026 com ${nomeExibicao(campeao)} pela ${campeao.equipe}! 🏁`
+        : `🏁 Terminei a Temporada 2026 do GRID 2026 em ${ord2.findIndex(c=>c.isPlayer)+1}º lugar com ${document.getElementById('nomePiloto').value || 'meu piloto'} (${equipeEscolhida.nome})!`
+      )})" style="margin-top:10px">📤 Compartilhar resultado</button>
+      <button onclick="location.reload()" style="margin-top:10px">Nova temporada</button>`;
+    if(campeao.isPlayer) dispararConfete('confeteTitulo', 90);
+  } else if(corridasForaLesao > 0){
+    const resultado = simularCorridaHeadless();
+    const vencedor = resultado[0];
+    box.innerHTML = `<div class="unlock-msg">${textoLesaoAtual}</div>
+      <p style="margin-top:8px">Corrida disputada sem você — vencedor: <b>${nomeExibicao(vencedor)}</b> (${vencedor.equipe}).</p>
+      <p style="font-size:12px;color:var(--text-dim)">Corridas de recuperação restantes após essa: ${corridasForaLesao-1}</p>
+      <button onclick="continuarSemJogador()" style="margin-top:10px">Continuar →</button>`;
+  } else if(eventoAtual){
+    box.innerHTML = `<div class="unlock-msg">${eventoAtual.texto}</div>
+      <button onclick="resolverEvento(true)" style="margin-top:10px">${eventoAtual.simLabel}</button>
+      <button class="sec" onclick="resolverEvento(false)" style="margin-top:10px">${eventoAtual.naoLabel}</button>`;
+  } else if(Math.random() < 0.05){
+    const adversidade = EVENTOS_ADVERSIDADE[Math.floor(Math.random()*EVENTOS_ADVERSIDADE.length)];
+    corridasForaLesao = adversidade.corridas;
+    textoLesaoAtual = adversidade.texto;
+    renderTemporada();
+    return;
+  } else if(Math.random() < 0.22){
+    eventoAtual = EVENTOS_DECISAO[Math.floor(Math.random()*EVENTOS_DECISAO.length)];
+    renderTemporada();
+    return;
+  } else if(Math.random() < 0.10){
+    const evt = EVENTOS_ALEATORIOS[Math.floor(Math.random()*EVENTOS_ALEATORIOS.length)];
+    const msg = evt.efeito(seasonCars[0]);
+    const cor = evt.tipo === "bom" ? "var(--accent2)" : "var(--accent)";
+    box.innerHTML = `<div class="unlock-msg">${evt.texto}</div>
+      <p style="margin-top:6px;color:${cor};font-size:13px">${msg}</p>
+      <button onclick="renderTemporada()" style="margin-top:10px">Continuar →</button>`;
+  } else {
+    const c = circuitos[seasonRound];
+    const rival = seasonCars[rivalIdx];
+    const noticia = NOTICIAS[Math.floor(Math.random()*NOTICIAS.length)];
+    box.innerHTML = `<b>Rodada ${seasonRound+1} de ${circuitos.length}</b><div style="margin-top:4px">${c.bandeira} ${c.nome}</div>
+      <div style="margin-top:8px;font-size:13px;color:var(--accent2)">🥊 Rival: ${nomeExibicao(rival)} (${rival.equipe}) — você está ${rivalVitorias}x${rivalDerrotas}</div>
+      <div style="margin-top:6px;font-size:12.5px;color:var(--text-dim)">${noticia}</div>
+      <button onclick="iniciarCorridaTemporada()" style="margin-top:10px">Simular corrida 🏁</button>
+      <button class="sec" onclick="desistirTemporada()" style="margin-top:10px">Desistir da Temporada</button>`;
+  }
+
+  const ord = [...seasonCars].sort((a,b)=>b.pontosTemporada-a.pontosTemporada);
+  board.innerHTML = ord.map((c,i)=>
+    `<div class="${c.isPlayer?'player':''}"><span><span class="time-dot" style="background:${c.isPlayer?'#fff':(TEAM_CORES[c.equipe]||'#888')}"></span>${i+1}. ${nomeExibicao(c)}</span><span>${c.pontosTemporada} pts</span></div>`
+  ).join("");
+
+  const construtores = classificacaoConstrutores();
+  document.getElementById("classificacaoConstrutores").innerHTML = construtores.map((e,i)=>
+    `<div class="${e.temJogador?'player':''}"><span><span class="time-dot" style="background:${TEAM_CORES[e.equipe]||'#888'}"></span>${i+1}. ${e.equipe}</span><span>${e.pontos} pts</span></div>`
+  ).join("");
+}
+
+// ---------- CORRIDA ----------
+let ultimoComentarioTs = 0;
+function mostrarComentario(msg){
+  const agora = performance.now();
+  if(agora - ultimoComentarioTs < 1400) return;
+  ultimoComentarioTs = agora;
+  const el = document.getElementById('comentarioCorrida');
+  if(el) el.textContent = msg;
+}
+
+const AVG_MIN = 50, AVG_MAX = 95, SPEED_MIN = 0.90, SPEED_MAX = 1.02;
+function baseSpeed(p){
+  const avg = p.qualy*0.25 + p.ritmo*0.40 + p.carro*0.20 + p.cons*0.15;
+  const t = Math.max(0, Math.min(1, (avg-AVG_MIN)/(AVG_MAX-AVG_MIN)));
+  return SPEED_MIN + t*(SPEED_MAX-SPEED_MIN);
+}
+
+let cars = [], raceDone = false, ctx, canvas, lastT = null, finishTimer = null;
+let trackData = null, DIST_TOTAL = 0, circuitoAtual = null;
+let chuvaAtual = false, chuvaParticulas = [];
+const LAPS = 5, SPEED_K = 62;
+
+function iniciarCorridaTemporada(){
+  const circuito = circuitos[seasonRound];
+  circuitoAtual = circuito;
+  trackData = buildTrackPath(circuito.pontosAbs);
+  DIST_TOTAL = LAPS * trackData.total;
+  chuvaAtual = Math.random() < 0.22;
+  chuvaParticulas = chuvaAtual ? Array.from({length:50}, () => ({
+    x: Math.random()*600, y: Math.random()*330, len: 8+Math.random()*10, vel: 6+Math.random()*6
+  })) : [];
+
+  cars = seasonCars.map((c,idx) => ({
+    ...c, idx, distance:0, jitter:1, jitterTimer:0
+  }));
+  raceDone = false; lastT = null; finishTimer = null;
+  ultimoComentarioTs = 0;
+  document.getElementById("comentarioCorrida").textContent = "";
+  document.getElementById("resultadoFinal").innerHTML = "";
+  document.getElementById("statusCorrida").textContent = `${circuito.bandeira} ${circuito.nome}${chuvaAtual ? " 🌧️ PISTA MOLHADA" : ""}`;
+  document.getElementById("voltaInfo").textContent = `Volta 1/${LAPS}`;
+  document.getElementById("btnVerResultadoWrap").innerHTML = "";
+  irStep(5);
+  playEngine();
+  canvas = document.getElementById("pista");
+  canvas.style.background = circuito.noturna
+    ? "radial-gradient(circle at 50% 40%, #10143a 0%, #05050d 100%)"
+    : "radial-gradient(circle at 50% 40%, #1a2e1a 0%, #0f1a0f 100%)";
+  if(window.pista3D){
+    window.pista3D.iniciar(canvas, circuito.pontosAbs, CX, CY, cars, circuito.noturna);
+  }
+  ctx = canvas.getContext("2d");
+  requestAnimationFrame(loop);
+}
+
+function loop(ts){
+  if(lastT === null) lastT = ts;
+  const dt = Math.min((ts-lastT)/1000, 0.05);
+  lastT = ts;
+
+  if(!raceDone){
+    for(const c of cars){
+      if(c.fora) continue;
+      c.jitterTimer -= dt;
+      if(c.jitterTimer <= 0){
+        const variance = (0.32 - (c.cons/100)*0.15) * (chuvaAtual ? 1.3 : 1);
+        c.jitter = 1 + (Math.random()-0.5)*variance;
+        if(Math.random() < c.ultra/450 * (chuvaAtual ? 0.7 : 1)) c.jitter += 0.10;
+        if(Math.random() < (chuvaAtual ? 0.05 : 0.035)){
+          c.jitter *= (0.85 + Math.random()*0.12); // incidente leve — bem mais suave que antes
+          if(Math.random() < 0.3) mostrarComentario(`💥 ${nomeExibicao(c)} perde tempo após um erro na pista.`);
+        }
+        if(Math.random() < (chuvaAtual ? 0.006 : 0.003)){
+          c.fora = true;
+          const outro = cars[Math.floor(Math.random()*cars.length)];
+          const comContato = outro !== c && Math.random() < 0.4;
+          const msg = comContato
+            ? `🚨 Toque entre ${nomeExibicao(c)} e ${nomeExibicao(outro)} — ${nomeExibicao(c)} abandona a corrida!`
+            : `🚨 ${nomeExibicao(c)} bate forte e abandona a corrida!`;
+          ultimoComentarioTs = 0; // acidente grave sempre aparece, ignora o intervalo mínimo
+          mostrarComentario(msg);
+        }
+        c.jitterTimer = 0.4 + Math.random()*0.4;
+      }
+      c.distance += baseSpeed(c) * SPEED_K * c.jitter * dt;
+    }
+    if(cars.some(c => c.distance >= DIST_TOTAL) && finishTimer === null){
+      finishTimer = 2.5;
+      document.getElementById("statusCorrida").textContent += " · 🏁 Bandeira quadriculada!";
+    }
+    if(finishTimer !== null){
+      finishTimer -= dt;
+      if(finishTimer <= 0) raceDone = true;
+    }
+  }
+
+  if(window.pista3D){
+    const piscando = finishTimer !== null && Math.floor(performance.now()/220)%2===0;
+    window.pista3D.atualizar(cars, trackData.total, DIST_TOTAL, piscando);
+  } else {
+    desenhar();
+  }
+  atualizarLeaderboard();
+  atualizarVolta();
+
+  if(raceDone){ mostrarResultado(); return; }
+  requestAnimationFrame(loop);
+}
+
+function atualizarVolta(){
+  const lider = cars.reduce((max,c) => c.distance > max.distance ? c : max, cars[0]);
+  const voltaAtual = Math.min(LAPS, Math.floor(lider.distance / trackData.total) + 1);
+  document.getElementById("voltaInfo").textContent = `Volta ${voltaAtual}/${LAPS}`;
+}
+
+function desenharCarrinho(x, y, angle, cor, destaque, noturno){
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+
+  if(noturno){
+    const farol = ctx.createRadialGradient(9,0,0,9,0,7);
+    farol.addColorStop(0,"rgba(255,255,220,0.9)");
+    farol.addColorStop(1,"rgba(255,255,220,0)");
+    ctx.fillStyle = farol;
+    ctx.beginPath(); ctx.arc(9,0,7,0,Math.PI*2); ctx.fill();
+  }
+
+  ctx.fillStyle = "#111";
+  ctx.fillRect(-6.5,-5,3,2.2);
+  ctx.fillRect(-6.5,2.8,3,2.2);
+  ctx.fillRect(3.5,-5,3,2.2);
+  ctx.fillRect(3.5,2.8,3,2.2);
+
+  ctx.fillStyle = cor;
+  ctx.fillRect(-9.5,-3.5,1.6,7);
+
+  ctx.beginPath();
+  ctx.moveTo(-7,-1.8);
+  ctx.lineTo(4.5,-1.8);
+  ctx.lineTo(9,0);
+  ctx.lineTo(4.5,1.8);
+  ctx.lineTo(-7,1.8);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillRect(7,-4,1.6,8);
+
+  ctx.fillStyle = "#000";
+  ctx.beginPath();
+  ctx.ellipse(-1.5,0,2,1.2,0,0,Math.PI*2);
+  ctx.fill();
+
+  if(destaque){
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-7,-1.8); ctx.lineTo(4.5,-1.8); ctx.lineTo(9,0); ctx.lineTo(4.5,1.8); ctx.lineTo(-7,1.8);
+    ctx.closePath(); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function desenharGuardRail(){
+  const N = trackData.total;
+  for(let i=0; i<N; i+=4){
+    const a = trackData.dense[i];
+    const frente = trackData.dense[(i+3)%N];
+    const tang = Math.atan2(frente.y-a.y, frente.x-a.x);
+    const nx = Math.cos(tang+Math.PI/2), ny = Math.sin(tang+Math.PI/2);
+    const cor = (i/4)%2===0 ? "#eceff4" : "#d21f2e";
+    [1,-1].forEach(lado => {
+      const px = a.x + nx*15*lado, py = a.y + ny*15*lado;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(tang);
+      ctx.fillStyle = cor;
+      ctx.fillRect(-2.5, -1.2, 5, 2.4);
+      ctx.restore();
+    });
+  }
+}
+
+function desenharBoxes(){
+  const nBoxes = 5;
+  const coresEquipes = Object.values(TEAM_CORES);
+  for(let i=0;i<nBoxes;i++){
+    const s = i*7;
+    const p = trackPointAt(trackData, s);
+    const p2 = trackPointAt(trackData, s+1);
+    const tang = Math.atan2(p2.y-p.y, p2.x-p.x);
+    const normal = tang - Math.PI/2;
+    const bx = p.x + Math.cos(normal)*26;
+    const by = p.y + Math.sin(normal)*26;
+
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.rotate(tang);
+    ctx.fillStyle = '#2a2f3a';
+    ctx.fillRect(-7,-5,14,10);
+    ctx.fillStyle = coresEquipes[i % coresEquipes.length];
+    ctx.fillRect(-5.5,-2.5,11,5.5);
+    ctx.strokeStyle = '#4a5265'; ctx.lineWidth = 1;
+    ctx.strokeRect(-7,-5,14,10);
+    ctx.restore();
+  }
+}
+
+function desenharArquibancadas(){
+  const nStands = 6;
+  const zonaBoxes = trackData.total * 0.22;
+  const span = trackData.total - zonaBoxes;
+  const cores = ['#ff2d55','#00d4ff','#ffd23f','#4ade80','#eef1f6','#ff8a00'];
+  const nRows = 4;
+  for(let i=0;i<nStands;i++){
+    const s = zonaBoxes + (span/nStands)*i + span/(nStands*2);
+    const p = trackPointAt(trackData, s);
+    const dx = p.x-CX, dy = p.y-CY;
+    const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+    const nx = dx/dist, ny = dy/dist;
+    const standX = p.x + nx*48, standY = p.y + ny*48;
+    const ang = Math.atan2(ny, nx);
+
+    ctx.save();
+    ctx.translate(standX, standY);
+    ctx.rotate(ang + Math.PI/2);
+
+    ctx.strokeStyle = '#2a2f3a'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-16,6); ctx.lineTo(-16,-nRows*6-3);
+    ctx.moveTo(16,6); ctx.lineTo(16,-nRows*6-3);
+    ctx.stroke();
+
+    for(let row=0; row<nRows; row++){
+      const w = 34 - row*5;
+      const rowY = -row*6;
+      ctx.fillStyle = '#1c212c';
+      ctx.fillRect(-w/2, rowY, w, 5);
+      const nDots = Math.floor(w/3);
+      for(let d=0; d<nDots; d++){
+        ctx.fillStyle = cores[(i+row+d) % cores.length];
+        ctx.fillRect(-w/2 + d*3 + 0.5, rowY+1, 1.8, 1.8);
+      }
+    }
+
+    ctx.fillStyle = '#3a4152';
+    ctx.fillRect(-18, -nRows*6-4, 36, 3);
+
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = cores[i % cores.length];
+    ctx.fillRect(-17, -nRows*6-11, 34, 6);
+    ctx.globalAlpha = 1;
+
+    ctx.restore();
+  }
+}
+
+function desenhar(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  desenharArquibancadas();
+  desenharBoxes();
+
+  ctx.lineWidth = 26; ctx.strokeStyle = "#333a48"; ctx.lineJoin="round";
+  ctx.beginPath();
+  trackData.dense.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+  ctx.closePath(); ctx.stroke();
+
+  ctx.setLineDash([5,6]); ctx.lineWidth=1.5; ctx.strokeStyle="#00d4ff55";
+  ctx.beginPath();
+  trackData.dense.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+  ctx.closePath(); ctx.stroke();
+  ctx.setLineDash([]);
+
+  desenharGuardRail();
+
+  if(circuitoAtual && circuitoAtual.noturna){
+    const nLuzes = 10;
+    for(let i=0;i<nLuzes;i++){
+      const s = (trackData.total/nLuzes)*i;
+      const p = trackPointAt(trackData, s);
+      const grad = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,48);
+      grad.addColorStop(0,"rgba(255,240,190,0.22)");
+      grad.addColorStop(1,"rgba(255,240,190,0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(p.x,p.y,48,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  if(chuvaAtual){
+    ctx.fillStyle = "rgba(20,30,50,0.18)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = "rgba(190,210,255,0.5)";
+    ctx.lineWidth = 1.2;
+    chuvaParticulas.forEach(g => {
+      ctx.beginPath();
+      ctx.moveTo(g.x, g.y);
+      ctx.lineTo(g.x-3, g.y+g.len);
+      ctx.stroke();
+      g.y += g.vel; g.x -= 0.6;
+      if(g.y > canvas.height){ g.y = -10; g.x = Math.random()*canvas.width; }
+    });
+  }
+
+  const p0 = trackData.dense[0], p1 = trackData.dense[1];
+  const ang0 = Math.atan2(p1.y-p0.y, p1.x-p0.x);
+  const piscando = finishTimer !== null && Math.floor(performance.now()/220)%2===0;
+  if(!piscando){
+    ctx.save(); ctx.translate(p0.x,p0.y); ctx.rotate(ang0);
+    const quad = 3.5;
+    for(let row=0; row<8; row++){
+      for(let col=0; col<2; col++){
+        ctx.fillStyle = (row+col)%2===0 ? "#fff" : "#111";
+        ctx.fillRect(col*quad - quad, -14 + row*quad, quad, quad);
+      }
+    }
+    ctx.restore();
+  }
+
+  for(const c of cars){
+    if(c.distance >= DIST_TOTAL || c.fora) continue;
+    const p = trackPointAt(trackData, c.distance);
+    if(!c.historico) c.historico = [];
+    c.historico.push({x:p.x, y:p.y});
+    if(c.historico.length > 7) c.historico.shift();
+    const corRgb = c.isPlayer ? "255,255,255" : hexToRgb(c.cor);
+    c.historico.forEach((pt,idx) => {
+      const alpha = ((idx+1)/c.historico.length) * 0.3;
+      ctx.fillStyle = `rgba(${corRgb},${alpha})`;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, 3.2, 0, Math.PI*2); ctx.fill();
+    });
+    const p2 = trackPointAt(trackData, c.distance+1);
+    const ang = Math.atan2(p2.y-p.y, p2.x-p.x);
+    desenharCarrinho(p.x, p.y, ang, c.isPlayer ? "#fff" : c.cor, c.isPlayer, circuitoAtual && circuitoAtual.noturna);
+  }
+}
+
+function ordenados(){ return [...cars].sort((a,b)=>b.distance-a.distance); }
+function atualizarLeaderboard(){
+  const ord = ordenados();
+  const top12 = ord.slice(0,12);
+  let html = top12.map((c,i)=>
+    `<div class="${c.isPlayer?'player':''}"><span><span class="time-dot" style="background:${c.isPlayer?'#fff':(TEAM_CORES[c.equipe]||'#888')}"></span>${i+1}. ${nomeExibicao(c)}</span><span>${c.equipe}</span></div>`
+  ).join("");
+
+  const posJogador = ord.findIndex(c => c.isPlayer) + 1;
+  if(posJogador > 12){
+    const jogador = ord[posJogador-1];
+    html += `<div class="player" style="border-top:2px solid var(--accent)"><span><span class="time-dot" style="background:#fff"></span>${posJogador}. ${nomeExibicao(jogador)} (você)</span><span>${jogador.equipe}</span></div>`;
+  }
+
+  document.getElementById("leaderboard").innerHTML = html;
+}
+
+function formatarTempo(seg){
+  const h = Math.floor(seg/3600), m = Math.floor((seg%3600)/60), s = seg%60;
+  const ms = Math.round((s%1)*1000);
+  return `${h>0?h+':':''}${String(m).padStart(h>0?2:1,'0')}:${String(Math.floor(s)).padStart(2,'0')}.${String(ms).padStart(3,'0')}`;
+}
+function formatarGap(seg){
+  if(seg < 60) return `+${seg.toFixed(3)}`;
+  const m = Math.floor(seg/60), s = seg%60;
+  return `+${m}:${s.toFixed(3).padStart(6,'0')}`;
+}
+function calcularTempos(ord){
+  const TEMPO_BASE = 90*60; // ~1h30 de "tempo de prova" fictício pro líder
+  const distLider = ord[0].distance;
+  return ord.map((c,i) => {
+    if(c.fora) return {...c, tempoTexto:"DNF"};
+    if(i===0) return {...c, tempoTexto: formatarTempo(TEMPO_BASE)};
+    const gap = TEMPO_BASE * (1 - c.distance/distLider);
+    return {...c, tempoTexto: formatarGap(Math.max(0.001,gap))};
+  });
+}
+
+function mostrarResultado(){
+  document.getElementById("statusCorrida").textContent += " · 🏁 Finalizada";
+  document.getElementById("btnVerResultadoWrap").innerHTML =
+    `<button onclick="window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'})">Ver resultado final ⬇️</button>`;
+
+  const ord = ordenados();
+  const posJogador = ord.findIndex(c=>c.isPlayer)+1;
+
+  ord.forEach((c,i)=>{
+    const pts = PONTOS_POSICAO[i] || 0;
+    seasonCars[c.idx].pontosTemporada += pts;
+  });
+
+  const ganhos = PONTOS_POSICAO[posJogador-1] || 0;
+  seasonCareerPoints += ganhos;
+  const xpGanho = XP_POSICAO[posJogador-1] || 0;
+  seasonXP += xpGanho;
+
+  let podioTexto = "";
+  let trofeuTexto = "";
+  if(posJogador <= 3){
+    const trofeus = carregarTrofeus();
+    const chave = posJogador===1 ? "ouro" : posJogador===2 ? "prata" : "bronze";
+    const icone = posJogador===1 ? "🥇" : posJogador===2 ? "🥈" : "🥉";
+    trofeus[chave]++;
+    salvarTrofeus(trofeus);
+    trofeuTexto = `<div class="unlock-msg">${icone} Pódio! Troféu de ${chave} adicionado à sua coleção.</div>`;
+    podioTexto = `<div class="confete-container" id="confetePodio"></div><div class="podio-celebracao"><div class="emoji">${icone}</div><div>PÓDIO — ${posJogador}º LUGAR</div></div>`;
+    playFanfare();
+    if(posJogador===1) setTimeout(playApplause, 300);
+  }
+  if(posJogador === 1){
+    vitoriasNaTemporada++;
+    if(desbloquearConquista("primeira-vitoria")) trofeuTexto += `<div class="unlock-msg">🏅 Conquista desbloqueada: Primeira Vitória!</div>`;
+  }
+
+  const posRival = ord.findIndex(c => c.idx === rivalIdx) + 1;
+  let rivalTexto = "";
+  if(posJogador < posRival){ rivalVitorias++; rivalTexto = `<p style="margin-top:6px;color:var(--accent2)">🥊 Você venceu o duelo contra seu rival nessa corrida.</p>`; }
+  else if(posJogador > posRival){ rivalDerrotas++; rivalTexto = `<p style="margin-top:6px;color:var(--text-dim)">🥊 Seu rival venceu o duelo dessa corrida.</p>`; }
+
+  const ordComTempo = calcularTempos(ord);
+  let msg = podioTexto + `<h3>Resultado da corrida</h3>` + ordComTempo.map((c,i)=>
+    `<div class="${c.isPlayer?'player':''}"><span><span class="time-dot" style="background:${c.isPlayer?'#fff':(TEAM_CORES[c.equipe]||'#888')}"></span>${i+1}º ${nomeExibicao(c)} <span style="color:var(--text-dim);font-size:11px">${c.equipe}</span></span><span style="font-family:'Rajdhani',sans-serif;font-variant-numeric:tabular-nums">${c.tempoTexto}</span></div>`
+  ).join("");
+  msg += `<p style="margin-top:10px">Você terminou em <b>${posJogador}º lugar</b> (+${ganhos} pts de carreira acumulados: ${seasonCareerPoints} · +${xpGanho} XP: ${seasonXP}).</p>`;
+  msg += rivalTexto;
+  msg += trofeuTexto;
+  msg += `<button onclick="continuarTemporada()">Continuar temporada →</button>`;
+  document.getElementById("resultadoFinal").innerHTML = `<div class="resultado">${msg}</div>`;
+  if(posJogador <= 3) dispararConfete('confetePodio', posJogador===1 ? 55 : 30);
+}
+
+function continuarTemporada(){
+  seasonRound++;
+  if(seasonRound % 3 === 0 && seasonRound < circuitos.length){
+    irStepEvolucao();
+  } else {
+    irStep(4);
+    renderTemporada();
+  }
+}
+
+function resolverEvento(sim){
+  const player = seasonCars[0];
+  const msg = sim ? eventoAtual.aplicarSim(player) : eventoAtual.aplicarNao(player);
+  eventoAtual = null;
+  document.getElementById("proximaCorridaBox").innerHTML = `<div class="unlock-msg">${msg}</div>
+    <button onclick="renderTemporada()" style="margin-top:10px">Continuar →</button>`;
+}
+
+function simularCorridaHeadless(){
+  const circuito = circuitos[seasonRound];
+  const localTrack = buildTrackPath(circuito.pontosAbs);
+  const localDistTotal = LAPS * localTrack.total;
+  const cars = seasonCars.map((c,idx) => c.isPlayer ? null : ({...c, idx, distance:0, jitter:1, jitterTimer:0})).filter(Boolean);
+  let done = false; const dt = 0.1; let passos = 0;
+  while(!done && passos < 3000){
+    passos++;
+    for(const c of cars){
+      c.jitterTimer -= dt;
+      if(c.jitterTimer <= 0){
+        const variance = 0.28 - (c.cons/100)*0.15;
+        c.jitter = 1 + (Math.random()-0.5)*variance;
+        if(Math.random() < c.ultra/450) c.jitter += 0.10;
+        if(Math.random() < 0.035) c.jitter *= (0.72 + Math.random()*0.22);
+        c.jitterTimer = 0.4 + Math.random()*0.4;
+      }
+      c.distance += baseSpeed(c) * SPEED_K * c.jitter * dt;
+    }
+    if(cars.some(c => c.distance >= localDistTotal)) done = true;
+  }
+  const ord = [...cars].sort((a,b)=>b.distance-a.distance);
+  ord.forEach((c,i) => { seasonCars[c.idx].pontosTemporada += PONTOS_POSICAO[i] || 0; });
+  return ord;
+}
+
+function continuarSemJogador(){
+  corridasForaLesao--;
+  textoLesaoAtual = "";
+  seasonRound++;
+  if(seasonRound % 3 === 0 && seasonRound < circuitos.length){
+    irStepEvolucao();
+  } else {
+    irStep(4);
+    renderTemporada();
+  }
+}
+
+function desistirTemporada(){
+  const confirmar = confirm("Tem certeza que quer desistir dessa temporada? Os pontos de carreira acumulados até agora (" + seasonCareerPoints + ") não serão confirmados, e você volta pro início.");
+  if(confirmar) location.reload();
+}
+
+function irStepEvolucao(){
+  irStep(6);
+  const opcoesAtributos = atributos.map(a =>
+    `<div class="opcao" onclick="aplicarEvolucao('${a.key}')">
+      <b>${a.label}</b><span>+10% de XP investido</span>
+    </div>`
+  ).join("");
+  const opcaoCarro = `<div class="opcao" onclick="aplicarEvolucao('carro')">
+      <b>🔧 Performance do carro</b><span>+5% de desenvolvimento</span>
+    </div>`;
+  document.getElementById("listaEvolucao").innerHTML = opcoesAtributos + opcaoCarro;
+}
+
+function aplicarEvolucao(key){
+  const player = seasonCars[0];
+  const fator = key === "carro" ? 1.05 : 1.10;
+  player[key] = Math.min(99, Math.round(player[key]*fator));
+  seasonXP = 0;
+  irStep(4);
+  renderTemporada();
+}
+
+renderProgresso();
+irStep(1);
+console.log("🇧🇷 Vai Bortoleto!");
+
+function abrirCarreira(){
+  irStep(7);
+
+  const hall = carregarHall();
+  document.getElementById("hallLista").innerHTML = hall.length ? hall.map(h =>
+    `<div><span>${h.titulo ? '🏆' : ''} ${h.data} — ${h.piloto} (${h.equipe})</span><span>${h.posicao}º · ${h.pontosTemporada} pts</span></div>`
+  ).join("") : `<div><span style="color:var(--text-dim)">Nenhuma temporada concluída ainda.</span></div>`;
+
+  const garagem = carregarGaragem();
+  const todosNomes = poolHistorico.map(p=>p.nome);
+  document.getElementById("garagemLista").innerHTML = todosNomes.map(nome => {
+    const usado = garagem.includes(nome);
+    return `<div><span style="${usado?'':'color:var(--text-dim)'}">${usado?'✅':'⬜'} ${nome}</span></div>`;
+  }).join("") + `<div style="padding-top:8px;color:var(--text-dim);font-size:12px">Usados: ${garagem.length}/${todosNomes.length}</div>`;
+
+  const conquistas = carregarConquistas();
+  document.getElementById("conquistasLista").innerHTML = Object.entries(CONQUISTAS_INFO).map(([key,info]) => {
+    const ok = !!conquistas[key];
+    return `<div><span style="${ok?'':'color:var(--text-dim)'}">${ok?'🏅':'🔒'} ${info.nome}</span><span style="font-size:11px;color:var(--text-dim)">${info.desc}</span></div>`;
+  }).join("");
+}
+</script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+let scene, camera, renderer, controls, curva3D = null, carMeshes = [], sceneObjs = [], bandeiraMesh = null;
+
+function limparCena(){
+  sceneObjs.forEach(obj=>{
+    scene.remove(obj);
+    obj.traverse ? obj.traverse(n=>{ if(n.geometry) n.geometry.dispose(); if(n.material) (Array.isArray(n.material)?n.material:[n.material]).forEach(m=>m.dispose()); }) : null;
+  });
+  sceneObjs = []; carMeshes = [];
+}
+
+function hexNum(hex){ return parseInt((hex||"#888888").replace('#',''), 16); }
+
+function criarCarroMesh(corHex){
+  const cor = hexNum(corHex);
+  const grupo = new THREE.Group();
+  const corpo = new THREE.Mesh(new THREE.BoxGeometry(1.6,0.5,3.2), new THREE.MeshStandardMaterial({color:cor, metalness:.4, roughness:.4}));
+  corpo.position.y=0.5; corpo.castShadow=true; grupo.add(corpo);
+  const nariz = new THREE.Mesh(new THREE.ConeGeometry(0.45,1.3,8), new THREE.MeshStandardMaterial({color:cor}));
+  nariz.rotation.x=Math.PI/2; nariz.position.set(0,0.45,2.1); grupo.add(nariz);
+  const asa = new THREE.Mesh(new THREE.BoxGeometry(2,0.12,0.45), new THREE.MeshStandardMaterial({color:0x111111}));
+  asa.position.set(0,0.72,-1.7); grupo.add(asa);
+  [[-0.85,0.32,1.05],[0.85,0.32,1.05],[-0.85,0.32,-1.05],[0.85,0.32,-1.05]].forEach(([x,y,z])=>{
+    const roda = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,0.35,14), new THREE.MeshStandardMaterial({color:0x111111}));
+    roda.rotation.z=Math.PI/2; roda.position.set(x,y,z); roda.castShadow=true; grupo.add(roda);
+  });
+  return grupo;
+}
+
+function texturaQuadriculada(){
+  const c = document.createElement('canvas'); c.width=32; c.height=32;
+  const g = c.getContext('2d');
+  for(let y=0;y<4;y++) for(let x=0;x<4;x++){ g.fillStyle=(x+y)%2===0?'#fff':'#111'; g.fillRect(x*8,y*8,8,8); }
+  return new THREE.CanvasTexture(c);
+}
+
+function construirPista3D(pontosAbs, CX, CY){
+  const pts3D = pontosAbs.map(p => new THREE.Vector3((p.x-CX)/4, 0, (p.y-CY)/4));
+  const curva = new THREE.CatmullRomCurve3(pts3D, true, 'catmullrom', 0.5);
+  const N = 300;
+  const LARGURA = 4.5;
+  const pos=[], uv=[], idx=[];
+  for(let i=0;i<=N;i++){
+    const t=(i%N)/N;
+    const p = curva.getPointAt(t);
+    const tang = curva.getTangentAt(t);
+    const dir = new THREE.Vector3().crossVectors(tang, new THREE.Vector3(0,1,0)).normalize();
+    const esq = p.clone().addScaledVector(dir,-LARGURA/2);
+    const dta = p.clone().addScaledVector(dir, LARGURA/2);
+    pos.push(esq.x,0.02,esq.z, dta.x,0.02,dta.z);
+    uv.push(0,i/10,1,i/10);
+  }
+  for(let i=0;i<N;i++){ const a=i*2,b=i*2+1,c=i*2+2,d=i*2+3; idx.push(a,b,c,b,d,c); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv,2));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  const pista = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color:0x2c303a, roughness:0.85}));
+  pista.receiveShadow = true;
+  scene.add(pista); sceneObjs.push(pista);
+
+  const amostras = curva.getSpacedPoints(N);
+  const linhaGeo = new THREE.BufferGeometry().setFromPoints(amostras.map(p=>new THREE.Vector3(p.x,0.05,p.z)));
+  const linha = new THREE.LineLoop(linhaGeo, new THREE.LineDashedMaterial({color:0x00e5c7, dashSize:1.5, gapSize:1.5}));
+  linha.computeLineDistances();
+  scene.add(linha); sceneObjs.push(linha);
+
+  for(let i=0;i<N;i+=6){
+    const t=i/N;
+    const p = curva.getPointAt(t);
+    const tang = curva.getTangentAt(t);
+    const dir = new THREE.Vector3().crossVectors(tang, new THREE.Vector3(0,1,0)).normalize();
+    [1,-1].forEach(lado=>{
+      const pp = p.clone().addScaledVector(dir, (LARGURA/2+0.6)*lado);
+      const seg = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.4,1.2), new THREE.MeshStandardMaterial({color:(i/6)%2===0?0xeceff4:0xd21f2e}));
+      seg.position.set(pp.x,0.25,pp.z);
+      seg.lookAt(pp.x+tang.x,0.25,pp.z+tang.z);
+      scene.add(seg); sceneObjs.push(seg);
+    });
+  }
+
+  for(let i=0;i<6;i++){
+    const t = 0.15 + (0.85/6)*i;
+    const p = curva.getPointAt(t);
+    const tang = curva.getTangentAt(t);
+    const dir = new THREE.Vector3().crossVectors(tang, new THREE.Vector3(0,1,0)).normalize();
+    const base = p.clone().addScaledVector(dir, 7);
+    const grupo = new THREE.Group();
+    for(let f=0; f<4; f++){
+      const bloco = new THREE.Mesh(new THREE.BoxGeometry(6,0.7,1.5), new THREE.MeshStandardMaterial({color: f===3?0xff8a3d:(f%2===0?0x232838:0x2d3346)}));
+      bloco.position.set(0, f*0.9+0.5, f*1+1);
+      bloco.castShadow=true; bloco.receiveShadow=true;
+      grupo.add(bloco);
+    }
+    grupo.position.set(base.x,0,base.z);
+    grupo.lookAt(p.x,0,p.z);
+    scene.add(grupo); sceneObjs.push(grupo);
+  }
+
+  // bandeira quadriculada na linha de largada
+  const p0 = curva.getPointAt(0), p1 = curva.getPointAt(0.003);
+  const texQuad = texturaQuadriculada();
+  bandeiraMesh = new THREE.Mesh(new THREE.PlaneGeometry(LARGURA+1.2, 2), new THREE.MeshBasicMaterial({map:texQuad, side:THREE.DoubleSide}));
+  bandeiraMesh.position.set(p0.x, 1.1, p0.z);
+  bandeiraMesh.lookAt(p1.x, 1.1, p1.z);
+  bandeiraMesh.rotateY(Math.PI/2);
+  scene.add(bandeiraMesh); sceneObjs.push(bandeiraMesh);
+
+  return curva;
+}
+
+function iniciar(canvasEl, pontosAbs, CX, CY, corridores, noturna){
+  limparCena();
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(noturna ? 0x030308 : 0x06070c);
+  scene.fog = new THREE.Fog(noturna ? 0x030308 : 0x06070c, 55, 170);
+
+  camera = new THREE.PerspectiveCamera(50, 600/330, 0.1, 500);
+  camera.position.set(0, 30, 52);
+
+  renderer = new THREE.WebGLRenderer({canvas: canvasEl, antialias:true});
+  renderer.setSize(600, 330, false);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled = true;
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0,0,0);
+  controls.enableDamping = true; controls.dampingFactor=.08;
+  controls.maxPolarAngle = Math.PI/2-0.05;
+  controls.minDistance=18; controls.maxDistance=130;
+  controls.autoRotate = true; controls.autoRotateSpeed = 0.25;
+
+  scene.add(new THREE.AmbientLight(0x445066, noturna?0.55:1));
+  const sol = new THREE.DirectionalLight(noturna?0xaab8ff:0xfff2d8, noturna?0.4:1.3);
+  sol.position.set(40,60,20); sol.castShadow=true;
+  scene.add(sol);
+  if(noturna){
+    [[-25,-15],[25,-15],[-25,25],[25,25]].forEach(([x,z])=>{
+      const holo = new THREE.PointLight(0xfff0c8, 45, 70);
+      holo.position.set(x,18,z);
+      scene.add(holo); sceneObjs.push(holo);
+    });
+  }
+
+  const chao = new THREE.Mesh(new THREE.PlaneGeometry(400,400), new THREE.MeshStandardMaterial({color: noturna?0x0a1410:0x14201a, roughness:1}));
+  chao.rotation.x=-Math.PI/2; chao.receiveShadow=true;
+  scene.add(chao); sceneObjs.push(chao);
+
+  curva3D = construirPista3D(pontosAbs, CX, CY);
+
+  carMeshes = corridores.map(c => {
+    const mesh = criarCarroMesh(c.isPlayer ? "#ffffff" : c.cor);
+    scene.add(mesh);
+    sceneObjs.push(mesh);
+    return mesh;
+  });
+}
+
+function atualizar(cars, trackTotal, distTotal, piscarBandeira){
+  if(!curva3D || !renderer) return;
+  cars.forEach((c,i)=>{
+    const mesh = carMeshes[i];
+    if(!mesh) return;
+    if(c.distance >= distTotal || c.fora){ mesh.visible=false; return; }
+    mesh.visible = true;
+    const t = ((c.distance % trackTotal)+trackTotal) % trackTotal / trackTotal;
+    const p = curva3D.getPointAt(t);
+    const alvo = curva3D.getPointAt((t+0.003)%1);
+    mesh.position.set(p.x, 0, p.z);
+    mesh.lookAt(alvo.x, 0, alvo.z);
+  });
+  if(bandeiraMesh) bandeiraMesh.visible = !piscarBandeira;
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+window.pista3D = { iniciar, atualizar };
+</script>
+</body>
+</html>
